@@ -7,6 +7,32 @@ const writeRoles: UserRole[] = ['admin', 'editor'];
 const deleteRoles: UserRole[] = ['admin'];
 
 /**
+ * api-service paginerar listresurser som  { _meta: {...}, <resourceName>: [...] }.
+ * Frontend förväntar sig  { data, total, page, pages }. Normalisera båda formaten
+ * så frontend kan läsa res.data oavsett om bakomliggande är paginerad eller flat.
+ */
+function normalizeListResponse(payload: unknown): unknown {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return payload;
+  }
+  const obj = payload as Record<string, unknown>;
+  if (!('_meta' in obj)) return payload;
+
+  const meta = obj._meta as Record<string, unknown> | undefined;
+  const dataKey = Object.keys(obj).find(k => k !== '_meta' && Array.isArray(obj[k]));
+  if (!dataKey || !meta) return payload;
+
+  return {
+    data: obj[dataKey],
+    total: meta.totalRecords ?? meta.count,
+    page: meta.page,
+    pages: meta.totalPages,
+    _meta: meta,
+    [dataKey]: obj[dataKey],
+  };
+}
+
+/**
  * Skapar en proxy-router för en data-resurs på api-service-systemregister.
  *
  *   GET    /<resource>          -> proxar till GET    /{municipalityId}/<resource>
@@ -23,7 +49,7 @@ export function buildProxyRouter(resource: string): Router {
   router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await apiService.get(resource, req.query as Record<string, unknown>);
-      res.json(data);
+      res.json(normalizeListResponse(data));
     } catch (err) {
       next(err);
     }

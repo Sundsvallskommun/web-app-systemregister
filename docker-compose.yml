@@ -1,20 +1,62 @@
-version: '3'
+# Dev-infra: api-service-systemregister + MariaDB.
+# BFF (backend/) och Next.js (frontend/) körs lokalt med "yarn dev" — inte i Docker —
+# så hot reload funkar och du slipper bygga om imagen för varje ändring.
+#
+# Kör:
+#   docker compose up -d --build       # starta infra
+#   docker compose down                # stoppa
+#   docker compose down -v             # stoppa + wipe DB (seedar om vid nästa start)
+#
+# api-service och mariadb pratar med varandra över det privata sysreg-nätverket.
+# Båda exponerar mot host så TablePlus / DBeaver / curl kan ansluta från Windows.
+
 services:
-  backend:
-    build:
-      context: ./backend
+  mariadb:
+    image: mariadb:11
+    restart: unless-stopped
+    container_name: ${COMPOSE_PROJECT_NAME}-mariadb-${NODE_ENV:-development}
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?err}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-systemregister}
+      MARIADB_USER: ${MARIADB_USER:-systemreg}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?err}
     ports:
-      - "${BACKEND_PORT-3001}:3000"
-    container_name: ${COMPOSE_PROJECT_NAME}-backend-${NODE_ENV}
+      - "${MARIADB_PORT-3306}:3306"
     volumes:
-      - data:/app/data
-    network_mode: bridge
-  frontend:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - sysreg
+
+  api-service:
     build:
-      context: ./frontend
+      context: ../api-service-systemregister
+    container_name: ${COMPOSE_PROJECT_NAME}-api-service-${NODE_ENV:-development}
     ports:
-      - "${FRONTEND_PORT-3000}:3000"
-    container_name: ${COMPOSE_PROJECT_NAME}-frontend-${NODE_ENV}
-    network_mode: bridge
+      - "${API_SERVICE_PORT-8080}:8080"
+    environment:
+      CONFIG_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/${MARIADB_DATABASE:-systemregister}
+      CONFIG_DATASOURCE_USERNAME: ${MARIADB_USER:-systemreg}
+      CONFIG_DATASOURCE_PASSWORD: ${MARIADB_PASSWORD:?err}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
+      # Workaround: api-service har @Lob på fält där V1_0__create_initial_schema.sql
+      # skapar TEXT-kolumner. Hibernate 6 förväntar sig TINYTEXT → validation kraschar.
+      # Flyway äger schemat, vi hoppar över Hibernate-validering här.
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - sysreg
+
 volumes:
-  data:
+  mariadb-data:
+
+networks:
+  sysreg:
+    driver: bridge

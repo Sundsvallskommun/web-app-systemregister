@@ -25,6 +25,11 @@ COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
 
+# Pre-create /app/data with nodejs ownership so the named volume from compose
+# (data:/app/data) inherits it. Utan detta får mounten root-ägd och loggern
+# kraschar med EACCES när den försöker mkdir under /app/data/logs.
+RUN mkdir -p /app/data/logs && chown -R nodejs:nodejs /app/data
+
 USER nodejs
 EXPOSE 3000
 ENV PORT=3000
