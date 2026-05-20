@@ -3,9 +3,13 @@ import { authMiddleware, requireRole } from '@/middlewares/auth.middleware';
 import { apiService } from '@/services/api.service';
 import { loadRefData, enrichSystem } from '@/services/enrich.service';
 import { UserRole } from '@/interfaces/user.interface';
+import { uppercaseEnumFields } from '@/utils/enumTransform';
 
 const writeRoles: UserRole[] = ['admin', 'editor'];
 const deleteRoles: UserRole[] = ['admin'];
+
+// Java-API:s enum-värden är UPPERCASE; frontend skickar ibland lowercase.
+const SYSTEM_ENUM_FIELDS = ['status', 'hostingType'] as const;
 
 const router = Router();
 router.use(authMiddleware);
@@ -50,7 +54,8 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 
 router.post('/', requireRole(...writeRoles), async (req, res, next) => {
   try {
-    const data = await apiService.post('systems', req.body);
+    const body = uppercaseEnumFields(req.body, SYSTEM_ENUM_FIELDS);
+    const data = await apiService.post('systems', body);
     res.status(201).json(data);
   } catch (err) {
     next(err);
@@ -59,7 +64,8 @@ router.post('/', requireRole(...writeRoles), async (req, res, next) => {
 
 router.put('/:id', requireRole(...writeRoles), async (req, res, next) => {
   try {
-    const data = await apiService.put(`systems/${req.params.id}`, req.body);
+    const body = uppercaseEnumFields(req.body, SYSTEM_ENUM_FIELDS);
+    const data = await apiService.put(`systems/${req.params.id}`, body);
     res.json(data);
   } catch (err) {
     next(err);
@@ -68,7 +74,8 @@ router.put('/:id', requireRole(...writeRoles), async (req, res, next) => {
 
 router.patch('/:id', requireRole(...writeRoles), async (req, res, next) => {
   try {
-    const data = await apiService.patch(`systems/${req.params.id}`, req.body);
+    const body = uppercaseEnumFields(req.body, SYSTEM_ENUM_FIELDS);
+    const data = await apiService.patch(`systems/${req.params.id}`, body);
     res.json(data);
   } catch (err) {
     next(err);

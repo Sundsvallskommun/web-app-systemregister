@@ -67,6 +67,7 @@ export default function SystemFormDialog({ mode, system, onClose, onSaved }: Pro
 
   const handleSave = async () => {
     if (!auth) return;
+    if (mode === "create" && !form.systemId.trim()) { setError(t.required(s.systemId)); return; }
     if (!form.name.trim()) { setError(t.required(t.name)); return; }
     setSaving(true); setError("");
     try {
@@ -91,7 +92,7 @@ export default function SystemFormDialog({ mode, system, onClose, onSaved }: Pro
     <FormDialog open={mode !== "closed"} title={mode === "create" ? s.newSystem : `${s.editSystem}: ${system?.systemId} — ${system?.name}`}
       onClose={onClose} onSave={handleSave} saving={saving} error={error} saveLabel={mode === "create" ? t.create : t.save} maxWidth="md">
       <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
-        {mode === "create" && <TextField label={s.systemId} fullWidth placeholder="t.ex. SYS-005" value={form.systemId} onChange={(e) => update("systemId", e.target.value)} />}
+        {mode === "create" && <TextField label={s.systemId} fullWidth required placeholder="t.ex. SYS-005" value={form.systemId} onChange={(e) => update("systemId", e.target.value)} />}
         <TextField label={t.name} fullWidth required value={form.name} onChange={(e) => update("name", e.target.value)} />
         <TextField label={t.version} fullWidth value={form.version} onChange={(e) => update("version", e.target.value)} />
         <TextField label={t.status} select fullWidth value={form.status} onChange={(e) => update("status", e.target.value)}>

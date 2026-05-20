@@ -38,6 +38,20 @@ const corsWhitelist = (ORIGIN ?? '').split(',').map(s => s.trim()).filter(Boolea
 // systems hanteras av en dedikerad controller som berikar svaret med embedded
 // objekt (Supplier, ownerOrg, systemOwner, ...) — se controllers/systems.controller.ts.
 // Den måste registreras INNAN PROXIED_RESOURCES-loopen i initializeRoutes().
+//
+// Enum-fält per resurs som ska uppercase-as på POST/PUT/PATCH-bodyn innan
+// vidarebefordran (Java-API:s @Enumerated(EnumType.STRING) lagrar enum-namn,
+// vilka alltid är UPPERCASE).
+const RESOURCE_ENUM_FIELDS: Record<string, readonly string[]> = {
+  services: ['serviceType', 'hostingType'],
+  'system-service-links': ['direction'],
+  'system-dependencies': ['dependencyType'],
+  personuppgiftsbehandlingar: ['status', 'legalBasis', 'sensitiveDataBasis', 'transferProtectionMechanism'],
+  'ai-applications': ['status', 'riskCategory'],
+  informationshanteringsplaner: ['status'],
+  foreskrifter: ['utfardare'],
+};
+
 const PROXIED_RESOURCES = [
   'services',
   'organizations',
@@ -137,13 +151,13 @@ export class App {
     root.use('/systems', systemsController);
 
     for (const resource of PROXIED_RESOURCES) {
-      root.use(`/${resource}`, buildProxyRouter(resource));
+      root.use(`/${resource}`, buildProxyRouter(resource, { enumFields: RESOURCE_ENUM_FIELDS[resource] }));
     }
 
     // Aliases för bakåtkompatibilitet med gamla systemregister-frontend.
     // Frontend ringer /gdpr och /ai, api-service heter personuppgiftsbehandlingar och ai-applications.
-    root.use('/gdpr', buildProxyRouter('personuppgiftsbehandlingar'));
-    root.use('/ai', buildProxyRouter('ai-applications'));
+    root.use('/gdpr', buildProxyRouter('personuppgiftsbehandlingar', { enumFields: RESOURCE_ENUM_FIELDS.personuppgiftsbehandlingar }));
+    root.use('/ai', buildProxyRouter('ai-applications', { enumFields: RESOURCE_ENUM_FIELDS['ai-applications'] }));
 
     this.app.use(prefix, root);
   }

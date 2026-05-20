@@ -2,9 +2,19 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { authMiddleware, requireRole } from '@/middlewares/auth.middleware';
 import { apiService } from '@/services/api.service';
 import { UserRole } from '@/interfaces/user.interface';
+import { uppercaseEnumFields } from '@/utils/enumTransform';
 
 const writeRoles: UserRole[] = ['admin', 'editor'];
 const deleteRoles: UserRole[] = ['admin'];
+
+export interface ProxyRouterOptions {
+  /**
+   * Fältnamn som ska uppercase-as automatiskt på POST/PUT/PATCH-bodyn innan den
+   * vidarebefordras till api-service. Anledningen är att Java-enums är UPPERCASE
+   * medan frontend ofta skickar lowercase. Default: ingen transform.
+   */
+  enumFields?: readonly string[];
+}
 
 /**
  * api-service paginerar listresurser som  { _meta: {...}, <resourceName>: [...] }.
@@ -42,9 +52,13 @@ function normalizeListResponse(payload: unknown): unknown {
  *   PATCH  /<resource>/:id      -> proxar till PATCH  /{municipalityId}/<resource>/:id (editor+)
  *   DELETE /<resource>/:id      -> proxar till DELETE /{municipalityId}/<resource>/:id (admin)
  */
-export function buildProxyRouter(resource: string): Router {
+export function buildProxyRouter(resource: string, opts: ProxyRouterOptions = {}): Router {
   const router = Router();
   router.use(authMiddleware);
+
+  const enumFields = opts.enumFields ?? [];
+  const transformBody = (body: unknown): unknown =>
+    enumFields.length > 0 ? uppercaseEnumFields(body, enumFields) : body;
 
   router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -66,7 +80,7 @@ export function buildProxyRouter(resource: string): Router {
 
   router.post('/', requireRole(...writeRoles), async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = await apiService.post(resource, req.body);
+      const data = await apiService.post(resource, transformBody(req.body));
       res.status(201).json(data);
     } catch (err) {
       next(err);
@@ -75,7 +89,7 @@ export function buildProxyRouter(resource: string): Router {
 
   router.put('/:id', requireRole(...writeRoles), async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = await apiService.put(`${resource}/${req.params.id}`, req.body);
+      const data = await apiService.put(`${resource}/${req.params.id}`, transformBody(req.body));
       res.json(data);
     } catch (err) {
       next(err);
@@ -84,7 +98,7 @@ export function buildProxyRouter(resource: string): Router {
 
   router.patch('/:id', requireRole(...writeRoles), async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = await apiService.patch(`${resource}/${req.params.id}`, req.body);
+      const data = await apiService.patch(`${resource}/${req.params.id}`, transformBody(req.body));
       res.json(data);
     } catch (err) {
       next(err);
