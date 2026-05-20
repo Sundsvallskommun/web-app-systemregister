@@ -93,6 +93,7 @@ MARIADB_ROOT_PASSWORD=change-me-root
 - `MUNICIPALITY_ID=xxxx`
 - `JWT_SECRET=…` (generate a long random string)
 - `ORIGIN=http://localhost:3000`
+- `SEED_ADMIN_PASSWORD`, `SEED_EDITOR_PASSWORD`, `SEED_VIEWER_PASSWORD` — login passwords for the three seed users (see [Auth](#auth) below)
 
 `frontend/.env.local`:
 
@@ -100,13 +101,15 @@ MARIADB_ROOT_PASSWORD=change-me-root
 
 ## Auth
 
-The BFF uses JWT with username/password. Three hardcoded seed users:
+The BFF uses JWT with username/password. Three seed users are defined; their passwords are read from env vars at startup:
 
-| Username | Password     | Role   |
-| -------- | ------------ | ------ |
-| `admin`  | `Admin123!`  | admin  |
-| `editor` | `Editor123!` | editor |
-| `viewer` | `Viewer123!` | viewer |
+| Username | Env var                 | Default in dev    | Role   |
+| -------- | ----------------------- | ----------------- | ------ |
+| `admin`  | `SEED_ADMIN_PASSWORD`   | `dev-admin-only`  | admin  |
+| `editor` | `SEED_EDITOR_PASSWORD`  | `dev-editor-only` | editor |
+| `viewer` | `SEED_VIEWER_PASSWORD`  | `dev-viewer-only` | viewer |
+
+> When `NODE_ENV=production` the BFF refuses to start unless all three `SEED_*_PASSWORD` env vars are set explicitly. The dev defaults are intentionally obvious placeholders — change them locally if you want.
 
 Endpoints:
 

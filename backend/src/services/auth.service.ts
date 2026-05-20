@@ -13,31 +13,45 @@ interface SeedUser {
   role: UserRole;
 }
 
-// Seed-data — i prod ska detta lyftas till api-service eller en delad user-tabell.
-// Lösenord: Admin123! / Editor123! / Viewer123!
+/**
+ * Läs seed-lösenord från env. I production måste env-var vara satt — annars
+ * kraschar uppstarten. I dev/test används en uppenbar default som man genast
+ * vill byta.
+ */
+function getSeedPassword(envKey: string, devFallback: string): string {
+  const v = process.env[envKey];
+  if (v && v.length > 0) return v;
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(`${envKey} måste vara satt när NODE_ENV=production`);
+  }
+  return devFallback;
+}
+
+// Seed-data — flytta till api-service / delad users-tabell när det blir aktuellt.
+// Lösenord styrs av SEED_ADMIN_PASSWORD / SEED_EDITOR_PASSWORD / SEED_VIEWER_PASSWORD.
 const SEED_USERS: SeedUser[] = [
   {
     id: '00000000-0000-0000-0000-000000000001',
     username: 'admin',
-    email: 'admin@sundsvall.se',
+    email: 'admin@test.domain',
     name: 'Admin',
-    passwordHash: bcrypt.hashSync('Admin123!', 10),
+    passwordHash: bcrypt.hashSync(getSeedPassword('SEED_ADMIN_PASSWORD', 'dev-admin-only'), 10),
     role: 'admin',
   },
   {
     id: '00000000-0000-0000-0000-000000000002',
     username: 'editor',
-    email: 'editor@sundsvall.se',
+    email: 'editor@test.domain',
     name: 'Editor',
-    passwordHash: bcrypt.hashSync('Editor123!', 10),
+    passwordHash: bcrypt.hashSync(getSeedPassword('SEED_EDITOR_PASSWORD', 'dev-editor-only'), 10),
     role: 'editor',
   },
   {
     id: '00000000-0000-0000-0000-000000000003',
     username: 'viewer',
-    email: 'viewer@sundsvall.se',
+    email: 'viewer@test.domain',
     name: 'Viewer',
-    passwordHash: bcrypt.hashSync('Viewer123!', 10),
+    passwordHash: bcrypt.hashSync(getSeedPassword('SEED_VIEWER_PASSWORD', 'dev-viewer-only'), 10),
     role: 'viewer',
   },
 ];
