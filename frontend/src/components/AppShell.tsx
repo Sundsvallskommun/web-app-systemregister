@@ -1,239 +1,142 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import {
-  AppBar,
-  Box,
-  CssBaseline,
-  Divider,
-  Drawer,
-  IconButton,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Toolbar,
-  Typography,
-  Avatar,
-  Menu,
-  MenuItem,
-  Chip,
-} from "@mui/material";
-import {
-  Menu as MenuIcon,
-  Dashboard,
-  Dns,
-  Business,
-  Warning,
-  Security,
-  AccountTree,
-  Description,
-  Shield,
-  Notifications,
-  AdminPanelSettings,
-  Logout,
-  Person,
-  SmartToy,
-  Gavel,
-} from "@mui/icons-material";
+import Link from "next/link";
+import { Button, Header, MenuVertical, UserMenu } from "@sk-web-gui/react";
+import { LogOut, Menu as MenuIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import t from "@/lib/i18n";
-
-const DRAWER_WIDTH = 260;
 
 interface NavItem {
   label: string;
   href: string;
-  icon: React.ReactNode;
   roles?: string[];
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: <Dashboard /> },
-  { label: "System", href: "/systems", icon: <Dns /> },
-  { label: "Leverantörer", href: "/suppliers", icon: <Business /> },
-  { label: "Klassning (K/R/T)", href: "/classifications", icon: <Security /> },
-  { label: "Riskanalys", href: "/risks", icon: <Warning /> },
-  { label: "GDPR", href: "/gdpr", icon: <Gavel /> },
-  { label: "AI-tillämpningar", href: "/ai", icon: <SmartToy /> },
-  { label: "Processer", href: "/processes", icon: <AccountTree /> },
-  { label: "Kontinuitet", href: "/continuity", icon: <Shield /> },
-  { label: "Rapporter", href: "/reports", icon: <Description /> },
-  { label: "Notifieringar", href: "/notifications", icon: <Notifications /> },
-  {
-    label: "Administration",
-    href: "/admin",
-    icon: <AdminPanelSettings />,
-    roles: ["admin"],
-  },
+  { label: t.nav.dashboard, href: "/dashboard" },
+  { label: t.nav.systems, href: "/systems" },
+  { label: t.nav.suppliers, href: "/suppliers" },
+  { label: t.nav.classifications, href: "/classifications" },
+  { label: t.nav.risks, href: "/risks" },
+  { label: t.nav.gdpr, href: "/gdpr" },
+  { label: t.nav.ai, href: "/ai" },
+  { label: t.nav.processes, href: "/processes" },
+  { label: t.nav.continuity, href: "/continuity" },
+  { label: t.nav.reports, href: "/reports" },
+  { label: t.nav.notifications, href: "/notifications" },
+  { label: t.nav.admin, href: "/admin", roles: ["admin"] },
 ];
-
-const ROLE_LABELS: Record<string, string> = {
-  admin: "Admin",
-  editor: "Redaktör",
-  viewer: "Läsare",
-};
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const { auth, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     if (!auth) router.replace("/");
   }, [auth, router]);
 
+  // Close the mobile drawer whenever the route changes.
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
+
   if (!auth) return null;
 
   const visibleItems = NAV_ITEMS.filter(
-    (item) => !item.roles || item.roles.includes(auth.role)
+    (item) => !item.roles || item.roles.includes(auth.role),
   );
 
-  const drawer = (
-    <Box>
-      <Toolbar>
-        <Typography variant='h6' noWrap sx={{ color: "primary.main" }}>
-          Systemregister
-        </Typography>
-      </Toolbar>
-      <Divider />
-      <List>
-        {visibleItems.map((item) => (
-          <ListItemButton
-            key={item.href}
-            selected={pathname.startsWith(item.href)}
-            onClick={() => {
-              router.push(item.href);
-              setMobileOpen(false);
-            }}
-            sx={{
-              mx: 1,
-              borderRadius: 2,
-              mb: 0.5,
-              "&.Mui-selected": {
-                bgcolor: "secondary.main",
-                color: "white",
-                "& .MuiListItemIcon-root": { color: "white" },
-              },
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.label} />
-          </ListItemButton>
-        ))}
-      </List>
-    </Box>
+  const handleLogout = () => {
+    logout();
+    router.replace("/");
+  };
+
+  const roleLabel = t.roles[auth.role] ?? auth.role;
+
+  const nav = (
+    <MenuVertical.Provider>
+      <MenuVertical.Sidebar>
+        <MenuVertical.Nav>
+          <MenuVertical>
+            {visibleItems.map((item) => (
+              <MenuVertical.Item
+                key={item.href}
+                menuIndex={item.href}
+                current={pathname.startsWith(item.href)}
+              >
+                <Link href={item.href}>{item.label}</Link>
+              </MenuVertical.Item>
+            ))}
+          </MenuVertical>
+        </MenuVertical.Nav>
+      </MenuVertical.Sidebar>
+    </MenuVertical.Provider>
   );
 
   return (
-    <Box sx={{ display: "flex" }}>
-      <CssBaseline />
-      <AppBar
-        position='fixed'
-        sx={{
-          width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
-          ml: { sm: `${DRAWER_WIDTH}px` },
-          bgcolor: "white",
-          color: "text.primary",
-          borderRadius: 0,
-        }}
-      >
-        <Toolbar>
-          <IconButton
-            edge='start'
-            onClick={() => setMobileOpen(!mobileOpen)}
-            sx={{ mr: 2, display: { sm: "none" } }}
+    <div className="min-h-screen bg-background-content">
+      <Header
+        title={t.app.name}
+        mobileMenu={
+          <Button
+            iconButton
+            variant="tertiary"
+            aria-label={t.a11y.openMenu}
+            aria-expanded={mobileNavOpen}
+            onClick={() => setMobileNavOpen((open) => !open)}
           >
             <MenuIcon />
-          </IconButton>
-          <Box sx={{ flexGrow: 1 }} />
-          <Chip
-            icon={<Person />}
-            label={`${auth.username} (${ROLE_LABELS[auth.role] ?? auth.role})`}
-            variant='outlined'
-            sx={{ mr: 1 }}
+          </Button>
+        }
+        userMenu={
+          <UserMenu
+            initials={auth.username?.charAt(0) ?? "?"}
+            menuTitle={auth.username}
+            menuSubTitle={roleLabel}
+            menuGroups={[
+              {
+                label: roleLabel,
+                elements: [
+                  {
+                    label: t.logout,
+                    element: () => (
+                      <Button
+                        variant="link"
+                        leftIcon={<LogOut />}
+                        onClick={handleLogout}
+                      >
+                        {t.logout}
+                      </Button>
+                    ),
+                  },
+                ],
+              },
+            ]}
           />
-          <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
-            <Avatar
-              sx={{
-                width: 32,
-                height: 32,
-                bgcolor: "primary.main",
-                fontSize: 14,
-              }}
-            >
-              {auth.username?.charAt(0) ?? "?"}
-            </Avatar>
-          </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={!!anchorEl}
-            onClose={() => setAnchorEl(null)}
-          >
-            <MenuItem
-              onClick={() => {
-                setAnchorEl(null);
-                logout();
-                router.replace("/");
-              }}
-            >
-              <ListItemIcon>
-                <Logout fontSize='small' />
-              </ListItemIcon>
-              {t.logout}
-            </MenuItem>
-          </Menu>
-        </Toolbar>
-      </AppBar>
+        }
+      />
 
-      <Box
-        component='nav'
-        sx={{
-          width: { sm: DRAWER_WIDTH },
-          flexShrink: { sm: 0 },
-        }}
-      >
-        <Drawer
-          variant='temporary'
-          open={mobileOpen}
-          onClose={() => setMobileOpen(false)}
-          ModalProps={{ keepMounted: true }}
-          sx={{
-            display: { xs: "block", sm: "none" },
-            "& .MuiDrawer-paper": { width: DRAWER_WIDTH },
-          }}
-        >
-          {drawer}
-        </Drawer>
-        <Drawer
-          variant='permanent'
-          sx={{
-            display: { xs: "none", sm: "block" },
-            "& .MuiDrawer-paper": {
-              width: DRAWER_WIDTH,
-              borderRadius: 0,
-            },
-          }}
-          open
-        >
-          {drawer}
-        </Drawer>
-      </Box>
+      <div className="flex">
+        <div className="hidden md:block w-[26rem] shrink-0 p-16">{nav}</div>
 
-      <Box
-        component='main'
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
-        }}
-      >
-        <Toolbar />
-        {children}
-      </Box>
-    </Box>
+        {mobileNavOpen && (
+          <div className="md:hidden">
+            <div
+              className="fixed inset-0 z-40 bg-overlay-darken-6"
+              onClick={() => setMobileNavOpen(false)}
+            />
+            <div className="fixed left-0 top-0 bottom-0 z-50 w-4/5 max-w-[32rem] overflow-y-auto bg-background-content p-16 shadow-100">
+              {nav}
+            </div>
+          </div>
+        )}
+
+        <main className="grow min-w-0 p-24">{children}</main>
+      </div>
+    </div>
   );
 }
