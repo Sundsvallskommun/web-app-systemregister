@@ -1,15 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  FormControl,
-  FormLabel,
-  Select,
-  TextField,
-  Textarea,
-  cx,
-} from "@sk-web-gui/react";
+import { Select, TextField, Textarea } from "@sk-web-gui/react";
 import { KrtSelect } from "@/components/KrtDisplay";
+import Field from "@/components/Field";
 import FormDialog from "@/components/FormDialog";
 import { useAuth } from "@/lib/auth";
 import { get, post, patch } from "@/lib/api";
@@ -75,22 +69,6 @@ interface Props {
   system: System | null;
   onClose: () => void;
   onSaved: () => void;
-}
-
-interface FieldProps {
-  label: string;
-  required?: boolean;
-  className?: string;
-  children: React.ReactNode;
-}
-
-function Field({ label, required, className, children }: FieldProps) {
-  return (
-    <FormControl className={cx("w-full", className)}>
-      <FormLabel showRequired={required}>{label}</FormLabel>
-      {children}
-    </FormControl>
-  );
 }
 
 export default function SystemFormDialog({

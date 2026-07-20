@@ -120,8 +120,10 @@ const sv = {
     editSupplier: "Redigera",
     searchPlaceholder: "Sök leverantör...",
     orgNumber: "Organisationsnummer",
+    orgNumberPlaceholder: "t.ex. 556123-4567",
     contactEmail: "Kontakt e-post",
     website: "Webbplats",
+    websitePlaceholder: "https://...",
     noSuppliers: "Inga leverantörer hittades",
   },
 
