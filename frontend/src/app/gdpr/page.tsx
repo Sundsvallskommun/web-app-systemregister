@@ -9,11 +9,14 @@ import EnumLabel from "@/components/EnumLabel";
 import { useAuth } from "@/lib/auth";
 import { get } from "@/lib/api";
 import type { PPB } from "@/lib/api";
-import { GDPR_STATUS } from "@/lib/enums";
+import { GDPR_STATUS, metaFor } from "@/lib/enums";
 import t from "@/lib/i18n";
 
 const legalBasisLabel = (value?: string) =>
   value ? t.gdpr.legalBases[value.toLowerCase()] ?? value : t.emptyValue;
+
+const statusLabel = (value?: string) =>
+  value ? metaFor(GDPR_STATUS, value).label : t.emptyValue;
 
 const yesNo = (value?: boolean) => (value ? t.yes : t.no);
 
@@ -83,13 +86,17 @@ export default function GdprPage() {
                 {treatment.controller?.name ?? t.emptyValue}
               </Table.Column>
               <Table.Column>
-                <div className="inline-flex flex-wrap gap-4">
-                  {(treatment.SystemModels ?? []).map((s) => (
-                    <Label key={s.id} color="tertiary">
-                      {s.systemId}
-                    </Label>
-                  ))}
-                </div>
+                {treatment.SystemModels?.length ? (
+                  <div className="inline-flex flex-wrap gap-4">
+                    {treatment.SystemModels.map((s) => (
+                      <Label key={s.id} color="tertiary">
+                        {s.systemId}
+                      </Label>
+                    ))}
+                  </div>
+                ) : (
+                  t.emptyValue
+                )}
               </Table.Column>
               <Table.Column className="justify-end">
                 <Button
@@ -122,10 +129,11 @@ export default function GdprPage() {
       >
         <div className="grid grid-cols-2 gap-8">
           <p className="text-small">
-            <strong>{t.gdpr.treatmentId}:</strong> {selected?.behandlingId}
+            <strong>{t.gdpr.treatmentId}:</strong>{" "}
+            {selected?.behandlingId ?? t.emptyValue}
           </p>
           <p className="text-small">
-            <strong>{t.status}:</strong> {selected?.status ?? t.emptyValue}
+            <strong>{t.status}:</strong> {statusLabel(selected?.status)}
           </p>
           <p className="text-small">
             <strong>{t.gdpr.legalBasis}:</strong>{" "}
@@ -159,13 +167,17 @@ export default function GdprPage() {
         </p>
         <div className="mt-16">
           <p className="text-small font-bold mb-8">{t.gdpr.linkedSystems}</p>
-          <div className="flex flex-wrap gap-4">
-            {(selected?.SystemModels ?? []).map((s) => (
-              <Label key={s.id} color="tertiary">
-                {s.systemId} — {s.name}
-              </Label>
-            ))}
-          </div>
+          {selected?.SystemModels?.length ? (
+            <div className="flex flex-wrap gap-4">
+              {selected.SystemModels.map((s) => (
+                <Label key={s.id} color="tertiary">
+                  {s.systemId} — {s.name}
+                </Label>
+              ))}
+            </div>
+          ) : (
+            <p className="text-small">{t.emptyValue}</p>
+          )}
         </div>
       </ViewDialog>
     </AppShell>

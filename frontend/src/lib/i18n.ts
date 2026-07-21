@@ -188,16 +188,34 @@ const sv = {
     title: "AI-tillämpningar",
     newApp: "Ny AI-tillämpning",
     infoText: "Register över AI-tillämpningar enligt EU AI Act.",
+    appId: "AI-ID",
+    noApps: "Inga AI-tillämpningar hittades",
     riskCategory: "Riskkategori",
     highRiskArea: "Högriskområde",
     fria: "FRIA",
     friaCompleted: "FRIA genomförd",
+    friaDone: "Klar",
+    friaNotDone: "Ej klar",
     registrationStatus: "Registreringsstatus",
     contact: "Kontakt",
+    statuses: {
+      active: "Aktiv",
+      draft: "Utkast",
+      suspended: "Pausad",
+      retired: "Avvecklad",
+    } as Record<string, string>,
     riskCategories: {
       high_risk: "Hög risk",
       limited_risk: "Begränsad risk",
       minimal_risk: "Minimal risk",
+    } as Record<string, string>,
+    // Observed values only; unlisted ones fall back to their raw value.
+    registrationStatuses: {
+      not_required: "Krävs ej",
+      pending: "Väntar",
+    } as Record<string, string>,
+    highRiskAreas: {
+      essential_services: "Samhällsviktiga tjänster",
     } as Record<string, string>,
   },
 

@@ -1,25 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Typography, Box, Paper, Table, TableHead, TableRow, TableCell, TableBody,
-  Chip, IconButton, Button, Alert,
-} from "@mui/material";
-import { SmartToy, Visibility, Add } from "@mui/icons-material";
+import { Button, Label, Table } from "@sk-web-gui/react";
+import { Plus, Eye } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import ViewDialog from "@/components/ViewDialog";
+import EnumLabel from "@/components/EnumLabel";
 import { useAuth } from "@/lib/auth";
 import { get } from "@/lib/api";
 import type { AiApplication } from "@/lib/api";
+import { AI_STATUS, AI_RISK_CATEGORY, metaFor } from "@/lib/enums";
 import t from "@/lib/i18n";
 
-const STATUS_COLORS: Record<string, "success" | "warning" | "error" | "default" | "info"> = {
-  active: "success", draft: "info", suspended: "warning", retired: "default",
-};
-const RISK_COLORS: Record<string, "error" | "warning" | "success"> = {
-  high_risk: "error", limited_risk: "warning", minimal_risk: "success",
-};
-const RISK_LABELS = t.ai.riskCategories;
+const yesNo = (value?: boolean) => (value ? t.yes : t.no);
+
+const statusLabel = (value?: string) =>
+  value ? metaFor(AI_STATUS, value).label : t.emptyValue;
+
+const riskCategoryLabel = (value?: string) =>
+  value ? metaFor(AI_RISK_CATEGORY, value).label : t.emptyValue;
+
+const registrationStatusLabel = (value?: string) =>
+  value
+    ? t.ai.registrationStatuses[value.toLowerCase()] ?? value
+    : t.emptyValue;
+
+const highRiskAreaLabel = (value?: string) =>
+  value ? t.ai.highRiskAreas[value.toLowerCase()] ?? value : t.emptyValue;
 
 export default function AiPage() {
   const { auth } = useAuth();
@@ -35,57 +42,132 @@ export default function AiPage() {
 
   return (
     <AppShell>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <SmartToy color="primary" />
-          <Typography variant="h4">{t.ai.title}</Typography>
-        </Box>
-        {canEdit && <Button variant="contained" startIcon={<Add />}>{t.ai.newApp}</Button>}
-      </Box>
+      <div className="flex justify-between items-center mb-24">
+        <h1 className="text-h2">{t.ai.title}</h1>
+        {canEdit && (
+          <Button variant="primary" leftIcon={<Plus />}>
+            {t.ai.newApp}
+          </Button>
+        )}
+      </div>
 
-      <Alert severity="info" sx={{ mb: 3 }}>{t.ai.infoText}</Alert>
+      <p className="mb-24">{t.ai.infoText}</p>
 
-      <Paper>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>AI-ID</TableCell><TableCell>Namn</TableCell><TableCell>Status</TableCell>
-              <TableCell>{t.ai.riskCategory}</TableCell><TableCell>{t.ai.fria}</TableCell><TableCell>System</TableCell>
-              <TableCell>{t.owner}</TableCell><TableCell align="right">{t.actions}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {apps.map((app) => (
-              <TableRow key={app.id} hover>
-                <TableCell><Chip label={app.aiApplicationId} size="small" variant="outlined" /></TableCell>
-                <TableCell>{app.name}</TableCell>
-                <TableCell><Chip label={app.status} size="small" color={STATUS_COLORS[app.status] ?? "default"} /></TableCell>
-                <TableCell>{app.riskCategory ? <Chip label={RISK_LABELS[app.riskCategory] ?? app.riskCategory} size="small" color={RISK_COLORS[app.riskCategory] ?? "default"} /> : "-"}</TableCell>
-                <TableCell><Chip label={app.friaCompleted ? "Klar" : "Ej klar"} size="small" color={app.friaCompleted ? "success" : "warning"} /></TableCell>
-                <TableCell>{app.SystemModel ? <Chip label={app.SystemModel.systemId} size="small" /> : "-"}</TableCell>
-                <TableCell>{app.ownerOrg?.name ?? "-"}</TableCell>
-                <TableCell align="right">
-                  <IconButton size="small" onClick={() => setSelected(app)}><Visibility /></IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Paper>
+      <Table background scrollable="x">
+        <Table.Header>
+          <Table.HeaderColumn>{t.ai.appId}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.name}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.status}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.ai.riskCategory}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.ai.fria}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.system}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.owner}</Table.HeaderColumn>
+          <Table.HeaderColumn className="justify-end">
+            {t.actions}
+          </Table.HeaderColumn>
+        </Table.Header>
+        <Table.Body>
+          {apps.map((app) => (
+            <Table.Row key={app.aiApplicationId}>
+              <Table.Column>
+                <Label color="tertiary">{app.aiApplicationId}</Label>
+              </Table.Column>
+              <Table.Column>{app.name}</Table.Column>
+              <Table.Column>
+                <EnumLabel value={app.status} map={AI_STATUS} />
+              </Table.Column>
+              <Table.Column>
+                {app.riskCategory ? (
+                  <EnumLabel value={app.riskCategory} map={AI_RISK_CATEGORY} />
+                ) : (
+                  t.emptyValue
+                )}
+              </Table.Column>
+              <Table.Column>
+                <Label color={app.friaCompleted ? "success" : "warning"}>
+                  {app.friaCompleted ? t.ai.friaDone : t.ai.friaNotDone}
+                </Label>
+              </Table.Column>
+              <Table.Column>
+                {app.SystemModel ? (
+                  <Label color="tertiary">{app.SystemModel.systemId}</Label>
+                ) : (
+                  t.emptyValue
+                )}
+              </Table.Column>
+              <Table.Column>{app.ownerOrg?.name ?? t.emptyValue}</Table.Column>
+              <Table.Column className="justify-end">
+                <Button
+                  iconButton
+                  size="sm"
+                  variant="tertiary"
+                  aria-label={t.a11y.view(app.name)}
+                  onClick={() => setSelected(app)}
+                >
+                  <Eye />
+                </Button>
+              </Table.Column>
+            </Table.Row>
+          ))}
+          {apps.length === 0 && (
+            <Table.Row>
+              <Table.Column colSpan={8} className="justify-center py-32">
+                {t.ai.noApps}
+              </Table.Column>
+            </Table.Row>
+          )}
+        </Table.Body>
+      </Table>
 
-      <ViewDialog open={!!selected} title={selected?.name ?? ""} onClose={() => setSelected(null)} maxWidth="sm">
-        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
-          <Typography variant="body2"><strong>AI-ID:</strong> {selected?.aiApplicationId}</Typography>
-          <Typography variant="body2"><strong>Status:</strong> {selected?.status}</Typography>
-          <Typography variant="body2"><strong>{t.ai.riskCategory}:</strong> {selected?.riskCategory ? RISK_LABELS[selected.riskCategory] ?? selected.riskCategory : "-"}</Typography>
-          <Typography variant="body2"><strong>{t.ai.highRiskArea}:</strong> {selected?.highRiskArea ?? "-"}</Typography>
-          <Typography variant="body2"><strong>{t.ai.friaCompleted}:</strong> {selected?.friaCompleted ? "Ja" : "Nej"}</Typography>
-          <Typography variant="body2"><strong>{t.ai.registrationStatus}:</strong> {selected?.registrationStatus}</Typography>
-          <Typography variant="body2"><strong>System:</strong> {selected?.SystemModel ? `${selected.SystemModel.systemId} - ${selected.SystemModel.name}` : "-"}</Typography>
-          <Typography variant="body2"><strong>{t.owner}:</strong> {selected?.ownerOrg?.name ?? "-"}</Typography>
-          <Typography variant="body2"><strong>{t.ai.contact}:</strong> {selected?.contact ? `${selected.contact.firstName} ${selected.contact.lastName}` : "-"}</Typography>
-        </Box>
-        <Typography variant="body2" sx={{ mt: 2 }}><strong>Beskrivning:</strong> {selected?.description ?? "-"}</Typography>
+      <ViewDialog
+        open={!!selected}
+        title={selected?.name ?? ""}
+        onClose={() => setSelected(null)}
+        maxWidth="md"
+      >
+        <div className="grid grid-cols-2 gap-8">
+          <p className="text-small">
+            <strong>{t.ai.appId}:</strong> {selected?.aiApplicationId}
+          </p>
+          <p className="text-small">
+            <strong>{t.status}:</strong> {statusLabel(selected?.status)}
+          </p>
+          <p className="text-small">
+            <strong>{t.ai.riskCategory}:</strong>{" "}
+            {riskCategoryLabel(selected?.riskCategory)}
+          </p>
+          <p className="text-small">
+            <strong>{t.ai.highRiskArea}:</strong>{" "}
+            {highRiskAreaLabel(selected?.highRiskArea)}
+          </p>
+          <p className="text-small">
+            <strong>{t.ai.friaCompleted}:</strong>{" "}
+            {yesNo(selected?.friaCompleted)}
+          </p>
+          <p className="text-small">
+            <strong>{t.ai.registrationStatus}:</strong>{" "}
+            {registrationStatusLabel(selected?.registrationStatus)}
+          </p>
+          <p className="text-small">
+            <strong>{t.system}:</strong>{" "}
+            {selected?.SystemModel
+              ? `${selected.SystemModel.systemId} — ${selected.SystemModel.name}`
+              : t.emptyValue}
+          </p>
+          <p className="text-small">
+            <strong>{t.owner}:</strong> {selected?.ownerOrg?.name ?? t.emptyValue}
+          </p>
+          <p className="text-small">
+            <strong>{t.ai.contact}:</strong>{" "}
+            {selected?.contact
+              ? `${selected.contact.firstName} ${selected.contact.lastName}`
+              : t.emptyValue}
+          </p>
+        </div>
+        <p className="text-small mt-16">
+          <strong>{t.description}:</strong>{" "}
+          {selected?.description ?? t.emptyValue}
+        </p>
       </ViewDialog>
     </AppShell>
   );

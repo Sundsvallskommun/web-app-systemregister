@@ -30,6 +30,11 @@ export const SYSTEM_STATUS: EnumMap = {
   retired: { label: t.systems.statuses.retired, color: "tertiary" },
 };
 
+/**
+ * Matches the current seeded data (CLOUD/INTERNAL). Note: the API schema actually
+ * declares ON_PREMISE/CLOUD/HYBRID — the seed is stale legacy data from an old mock
+ * backend. Update this (and the i18n labels) when the API seed is corrected.
+ */
 export const HOSTING_TYPE: EnumMap = {
   cloud: { label: t.systems.hostingTypes.cloud, color: "info" },
   internal: { label: t.systems.hostingTypes.internal, color: "tertiary" },
@@ -52,6 +57,20 @@ export const RISK_STATUS: EnumMap = {
 
 export const GDPR_STATUS: EnumMap = {
   active: { label: t.active, color: "success" },
+  inactive: { label: t.inactive, color: "tertiary" },
+};
+
+export const AI_STATUS: EnumMap = {
+  active: { label: t.ai.statuses.active, color: "success" },
+  draft: { label: t.ai.statuses.draft, color: "info" },
+  suspended: { label: t.ai.statuses.suspended, color: "warning" },
+  retired: { label: t.ai.statuses.retired, color: "tertiary" },
+};
+
+export const AI_RISK_CATEGORY: EnumMap = {
+  high_risk: { label: t.ai.riskCategories.high_risk, color: "error" },
+  limited_risk: { label: t.ai.riskCategories.limited_risk, color: "warning" },
+  minimal_risk: { label: t.ai.riskCategories.minimal_risk, color: "success" },
 };
 
 /** K/R/T classification levels (0 = unset, 4 = highest). Numeric, so no label map. */
