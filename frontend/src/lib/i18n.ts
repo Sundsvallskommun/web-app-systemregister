@@ -70,6 +70,13 @@ const sv = {
     admin: "Administration",
   },
 
+  // Dashboard
+  dashboard: {
+    title: "Dashboard",
+    organizations: "Organisationer",
+    recentSystems: "Senaste system",
+  },
+
   // Systems
   systems: {
     title: "System",
@@ -106,6 +113,7 @@ const sv = {
     integrity: "Riktighet",
     availability: "Tillgänglighet",
     short: { k: "K", r: "R", t: "T" },
+    abbr: "K/R/T",
     assessment: "Bedömning",
     levels: {
       critical: "Verksamhetskritiskt",
