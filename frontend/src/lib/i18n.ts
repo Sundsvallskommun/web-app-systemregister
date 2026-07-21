@@ -14,6 +14,7 @@ const sv = {
   active: "Aktiv",
   inactive: "Inaktiv",
   owner: "Ägare",
+  system: "System",
   version: "Version",
   yes: "Ja",
   no: "Nej",
@@ -161,6 +162,7 @@ const sv = {
     newTreatment: "Ny behandling",
     infoText:
       "Register över personuppgiftsbehandlingar enligt GDPR artikel 30.",
+    noTreatments: "Inga behandlingar hittades",
     treatmentId: "Behandlings-ID",
     legalBasis: "Laglig grund",
     sensitiveData: "Känsliga uppg.",

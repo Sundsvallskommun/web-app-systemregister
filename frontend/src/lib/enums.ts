@@ -50,6 +50,10 @@ export const RISK_STATUS: EnumMap = {
   closed: { label: t.risks.statuses.closed, color: "tertiary" },
 };
 
+export const GDPR_STATUS: EnumMap = {
+  active: { label: t.active, color: "success" },
+};
+
 /** K/R/T classification levels (0 = unset, 4 = highest). Numeric, so no label map. */
 export const KRT_LEVEL_COLOR: Record<number, SemanticColor> = {
   0: "tertiary",
