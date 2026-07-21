@@ -1,11 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Typography, Box, Paper, List, ListItem, ListItemIcon, ListItemText,
-  Chip, IconButton, Alert, Divider, Button,
-} from "@mui/material";
-import { Notifications as NotifIcon, Warning, CalendarMonth, Security, CheckCircle, Delete } from "@mui/icons-material";
+import { Alert, Button, Label } from "@sk-web-gui/react";
+import { X } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import t from "@/lib/i18n";
 
@@ -25,52 +22,70 @@ const SAMPLE: Notification[] = [
   { id: "4", type: "info", title: "Behörighetsgranskning slutförd", description: "Metakoppling: granskning avklarad.", date: "2026-03-20", read: true },
 ];
 
-const ICONS: Record<string, React.ReactNode> = {
-  warning: <Warning color="warning" />,
-  info: <CheckCircle color="info" />,
-  contract: <CalendarMonth color="secondary" />,
-  security: <Security color="error" />,
+const ALERT_TYPE: Record<
+  Notification["type"],
+  "neutral" | "info" | "success" | "warning" | "error"
+> = {
+  warning: "warning",
+  info: "success",
+  contract: "neutral",
+  security: "error",
 };
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState(SAMPLE);
   const unread = notifications.filter((n) => !n.read).length;
 
+  const markAllRead = () =>
+    setNotifications(notifications.map((n) => ({ ...n, read: true })));
+
   return (
     <AppShell>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <NotifIcon color="primary" />
-          <Typography variant="h4">{t.notifications.title}</Typography>
-          {unread > 0 && <Chip label={t.notifications.newCount(unread)} color="error" size="small" />}
-        </Box>
-        <Button size="small" onClick={() => setNotifications(notifications.map((n) => ({ ...n, read: true })))}>
+      <div className="mb-24 flex xs:flex-col sm:flex-row xs:items-start sm:items-center justify-between">
+        <h1 className="text-h2">{t.notifications.title}</h1>
+        <Button variant="tertiary" size="sm" onClick={markAllRead}>
           {t.notifications.markAllRead}
         </Button>
-      </Box>
+      </div>
 
-      <Alert severity="info" sx={{ mb: 3 }}>
-        {t.notifications.infoText}
-      </Alert>
+      {unread > 0 && (
+        <div className="mb-16">
+          <Label color="info">{t.notifications.unreadCount(unread)}</Label>
+        </div>
+      )}
 
-      <Paper>
-        <List>
-          {notifications.map((n, i) => (
-            <Box key={n.id}>
-              <ListItem
-                sx={{ bgcolor: n.read ? "transparent" : "action.hover" }}
-                secondaryAction={
-                  <IconButton onClick={() => setNotifications(notifications.filter((x) => x.id !== n.id))}><Delete /></IconButton>
-                }
-              >
-                <ListItemIcon>{ICONS[n.type]}</ListItemIcon>
-                <ListItemText primary={n.title} secondary={`${n.date} — ${n.description}`} />
-              </ListItem>
-              {i < notifications.length - 1 && <Divider />}
-            </Box>
-          ))}
-        </List>
-      </Paper>
+      <p className="mb-24">{t.notifications.infoText}</p>
+
+      <div className="flex flex-col gap-16">
+        {notifications.map((n) => (
+          <Alert
+            key={n.id}
+            type={ALERT_TYPE[n.type]}
+            className={n.read ? "opacity-70" : undefined}
+          >
+            <Alert.Icon />
+            <Alert.Content>
+              <Alert.Content.Title>{n.title}</Alert.Content.Title>
+              <Alert.Content.Description>
+                {n.date} — {n.description}
+              </Alert.Content.Description>
+            </Alert.Content>
+            <Alert.Button
+              iconButton
+              size="sm"
+              aria-label={t.a11y.delete(n.title)}
+              onClick={() =>
+                setNotifications(notifications.filter((x) => x.id !== n.id))
+              }
+            >
+              <X />
+            </Alert.Button>
+          </Alert>
+        ))}
+        {notifications.length === 0 && (
+          <p className="text-dark-secondary">{t.noResults}</p>
+        )}
+      </div>
     </AppShell>
   );
 }

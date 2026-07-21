@@ -1,23 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Typography, Box, Paper, Table, TableHead, TableRow, TableCell, TableBody,
-  Chip, Alert,
-} from "@mui/material";
-import { Shield } from "@mui/icons-material";
+import { Label, Table } from "@sk-web-gui/react";
 import AppShell from "@/components/AppShell";
 import { KrtChip } from "@/components/KrtDisplay";
 import { useAuth } from "@/lib/auth";
 import { get } from "@/lib/api";
 import type { System, PaginatedResponse } from "@/lib/api";
+import { KRT_LEVEL_COLOR } from "@/lib/enums";
 import t from "@/lib/i18n";
 
 function isCritical(k: number, r: number, tv: number): boolean {
   return Math.max(k, r, tv) >= 4;
 }
 
-function isSocietal(k: number, r: number, tv: number): boolean {
+function isSocietal(k: number, tv: number): boolean {
   return k >= 4 && tv >= 4;
 }
 
@@ -34,57 +31,100 @@ export default function ContinuityPage() {
 
   return (
     <AppShell>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
-        <Shield color="primary" />
-        <Typography variant="h4">{t.continuity.title}</Typography>
-      </Box>
+      <h1 className="text-h2 mb-24">{t.continuity.title}</h1>
 
-      <Alert severity="info" sx={{ mb: 3 }}>
-        {t.continuity.infoText}
-      </Alert>
+      <p className="mb-24">{t.continuity.infoText}</p>
 
-      <Paper>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>System</TableCell>
-              <TableCell>{t.owner}</TableCell>
-              <TableCell align="center">K</TableCell>
-              <TableCell align="center">R</TableCell>
-              <TableCell align="center">T</TableCell>
-              <TableCell>{t.continuity.businessCritical}</TableCell>
-              <TableCell>{t.continuity.societalCritical}</TableCell>
-              <TableCell>Kritikalitet</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {systems.map((sys) => {
-              const critical = isCritical(sys.konfidentialitet, sys.riktighet, sys.tillganglighet);
-              const societal = isSocietal(sys.konfidentialitet, sys.riktighet, sys.tillganglighet);
-              return (
-                <TableRow key={sys.id} hover sx={critical ? { bgcolor: "error.50" } : undefined}>
-                  <TableCell>
-                    <Typography variant="body2" fontWeight={600}>{sys.name}</Typography>
-                    <Typography variant="caption" color="text.secondary">{sys.systemId}</Typography>
-                  </TableCell>
-                  <TableCell>{sys.ownerOrg?.name ?? "-"}</TableCell>
-                  <TableCell align="center"><KrtChip value={sys.konfidentialitet} /></TableCell>
-                  <TableCell align="center"><KrtChip value={sys.riktighet} /></TableCell>
-                  <TableCell align="center"><KrtChip value={sys.tillganglighet} /></TableCell>
-                  <TableCell><Chip label={critical ? "Ja" : "Nej"} size="small" color={critical ? "error" : "default"} /></TableCell>
-                  <TableCell><Chip label={societal ? "Ja" : "Nej"} size="small" color={societal ? "error" : "default"} /></TableCell>
-                  <TableCell>
-                    {sys.CriticalityLevel
-                      ? <Chip label={sys.CriticalityLevel.name} size="small" sx={{ bgcolor: sys.CriticalityLevel.color, color: "white" }} />
-                      : "-"
-                    }
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </Paper>
+      <Table background scrollable="x">
+        <Table.Header>
+          <Table.HeaderColumn>{t.system}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.owner}</Table.HeaderColumn>
+          <Table.HeaderColumn className="justify-center">
+            {t.krt.short.k}
+          </Table.HeaderColumn>
+          <Table.HeaderColumn className="justify-center">
+            {t.krt.short.r}
+          </Table.HeaderColumn>
+          <Table.HeaderColumn className="justify-center">
+            {t.krt.short.t}
+          </Table.HeaderColumn>
+          <Table.HeaderColumn>
+            {t.continuity.businessCritical}
+          </Table.HeaderColumn>
+          <Table.HeaderColumn>
+            {t.continuity.societalCritical}
+          </Table.HeaderColumn>
+          <Table.HeaderColumn>{t.systems.criticality}</Table.HeaderColumn>
+        </Table.Header>
+        <Table.Body>
+          {systems.map((sys) => {
+            const critical = isCritical(
+              sys.konfidentialitet,
+              sys.riktighet,
+              sys.tillganglighet,
+            );
+            const societal = isSocietal(
+              sys.konfidentialitet,
+              sys.tillganglighet,
+            );
+            return (
+              <Table.Row key={sys.id}>
+                <Table.Column>
+                  <div className="flex flex-col">
+                    <span className="font-bold">{sys.name}</span>
+                    <span className="text-small text-dark-secondary">
+                      {sys.systemId}
+                    </span>
+                  </div>
+                </Table.Column>
+                <Table.Column>
+                  {sys.ownerOrg?.name ?? t.emptyValue}
+                </Table.Column>
+                <Table.Column className="justify-center">
+                  <KrtChip value={sys.konfidentialitet} />
+                </Table.Column>
+                <Table.Column className="justify-center">
+                  <KrtChip value={sys.riktighet} />
+                </Table.Column>
+                <Table.Column className="justify-center">
+                  <KrtChip value={sys.tillganglighet} />
+                </Table.Column>
+                <Table.Column>
+                  <Label color={critical ? "error" : "tertiary"}>
+                    {critical ? t.yes : t.no}
+                  </Label>
+                </Table.Column>
+                <Table.Column>
+                  <Label color={societal ? "error" : "tertiary"}>
+                    {societal ? t.yes : t.no}
+                  </Label>
+                </Table.Column>
+                <Table.Column>
+                  {sys.CriticalityLevel ? (
+                    <Label
+                      color={
+                        KRT_LEVEL_COLOR[sys.CriticalityLevel.level] ??
+                        "tertiary"
+                      }
+                    >
+                      {sys.CriticalityLevel.name}
+                    </Label>
+                  ) : (
+                    t.emptyValue
+                  )}
+                </Table.Column>
+              </Table.Row>
+            );
+          })}
+          {systems.length === 0 && (
+            <Table.Row>
+              <Table.Column colSpan={8} className="justify-center py-32">
+                {t.systems.noSystems}
+              </Table.Column>
+            </Table.Row>
+          )}
+        </Table.Body>
+      </Table>
     </AppShell>
   );
 }

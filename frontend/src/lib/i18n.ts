@@ -29,6 +29,7 @@ const sv = {
   loggingIn: "Loggar in...",
   loginFailed: "Inloggningen misslyckades",
   username: "Användarnamn",
+  email: "E-post",
   password: "Lösenord",
   logout: "Logga ut",
   sessionExpired: "Sessionen har gått ut",
@@ -39,6 +40,8 @@ const sv = {
     view: (name: string) => `Visa ${name}`,
     edit: (name: string) => `Redigera ${name}`,
     delete: (name: string) => `Ta bort ${name}`,
+    showPassword: "Visa lösenord",
+    hidePassword: "Dölj lösenord",
   },
 
   // Roles
@@ -280,7 +283,7 @@ const sv = {
     markAllRead: "Markera alla som lästa",
     infoText:
       "Påminnelser för avtalsförnyelser och behörighetskontroller, varningar för risker och saknade åtgärder.",
-    newCount: (n: number) => `${n} nya`,
+    unreadCount: (n: number) => `${n} olästa`,
   },
 
   // Admin

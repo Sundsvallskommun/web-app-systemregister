@@ -60,6 +60,12 @@ export const GDPR_STATUS: EnumMap = {
   inactive: { label: t.inactive, color: "tertiary" },
 };
 
+export const USER_ROLE: EnumMap = {
+  admin: { label: t.roles.admin, color: "error" },
+  editor: { label: t.roles.editor, color: "warning" },
+  viewer: { label: t.roles.viewer, color: "tertiary" },
+};
+
 export const AI_STATUS: EnumMap = {
   active: { label: t.ai.statuses.active, color: "success" },
   draft: { label: t.ai.statuses.draft, color: "info" },

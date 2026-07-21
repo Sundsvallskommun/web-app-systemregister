@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Typography, Box, Paper, Table, TableHead, TableRow, TableCell, TableBody,
-  Chip, Alert,
-} from "@mui/material";
-import { AccountTree } from "@mui/icons-material";
+import { Label, Table } from "@sk-web-gui/react";
 import AppShell from "@/components/AppShell";
+import EnumLabel from "@/components/EnumLabel";
+import { KrtChip } from "@/components/KrtDisplay";
 import { useAuth } from "@/lib/auth";
 import { get } from "@/lib/api";
 import type { System, PaginatedResponse } from "@/lib/api";
+import { SYSTEM_STATUS } from "@/lib/enums";
 import t from "@/lib/i18n";
 
 export default function ProcessesPage() {
@@ -25,43 +24,51 @@ export default function ProcessesPage() {
 
   return (
     <AppShell>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
-        <AccountTree color="primary" />
-        <Typography variant="h4">{t.processes.title}</Typography>
-      </Box>
+      <h1 className="text-h2 mb-24">{t.processes.title}</h1>
 
-      <Alert severity="info" sx={{ mb: 3 }}>
-        {t.processes.infoText}
-      </Alert>
+      <p className="mb-24">{t.processes.infoText}</p>
 
-      <Paper>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>System-ID</TableCell>
-              <TableCell>System</TableCell>
-              <TableCell>{t.processes.ownerOrg}</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>K/R/T</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {systems.map((s) => (
-              <TableRow key={s.id} hover>
-                <TableCell><Chip label={s.systemId} size="small" variant="outlined" /></TableCell>
-                <TableCell>{s.name}</TableCell>
-                <TableCell>{s.ownerOrg?.name ?? "-"}</TableCell>
-                <TableCell><Chip label={s.status} size="small" color={s.status === "production" ? "success" : "default"} /></TableCell>
-                <TableCell>{s.konfidentialitet}/{s.riktighet}/{s.tillganglighet}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Paper>
+      <Table background scrollable="x">
+        <Table.Header>
+          <Table.HeaderColumn>{t.systems.systemId}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.system}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.processes.ownerOrg}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.status}</Table.HeaderColumn>
+          <Table.HeaderColumn className="justify-center">
+            {t.krt.abbr}
+          </Table.HeaderColumn>
+        </Table.Header>
+        <Table.Body>
+          {systems.map((sys) => (
+            <Table.Row key={sys.id}>
+              <Table.Column>
+                <Label color="tertiary">{sys.systemId}</Label>
+              </Table.Column>
+              <Table.Column>{sys.name}</Table.Column>
+              <Table.Column>{sys.ownerOrg?.name ?? t.emptyValue}</Table.Column>
+              <Table.Column>
+                <EnumLabel value={sys.status} map={SYSTEM_STATUS} />
+              </Table.Column>
+              <Table.Column className="justify-center">
+                <div className="inline-flex gap-4">
+                  <KrtChip value={sys.konfidentialitet} />
+                  <KrtChip value={sys.riktighet} />
+                  <KrtChip value={sys.tillganglighet} />
+                </div>
+              </Table.Column>
+            </Table.Row>
+          ))}
+          {systems.length === 0 && (
+            <Table.Row>
+              <Table.Column colSpan={5} className="justify-center py-32">
+                {t.systems.noSystems}
+              </Table.Column>
+            </Table.Row>
+          )}
+        </Table.Body>
+      </Table>
 
-      <Alert severity="warning" sx={{ mt: 3 }}>
-        {t.processes.klassaNote}
-      </Alert>
+      <p className="mt-24">{t.processes.klassaNote}</p>
     </AppShell>
   );
 }

@@ -34,7 +34,7 @@ export default function GdprPage() {
 
   return (
     <AppShell>
-      <div className="flex justify-between items-center mb-24">
+      <div className="flex xs:flex-col sm:flex-row xs:items-start sm:items-center justify-between mb-24">
         <h1 className="text-h2">{t.gdpr.title}</h1>
         {canEdit && (
           <Button variant="primary" leftIcon={<Plus />}>
