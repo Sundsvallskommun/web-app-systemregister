@@ -8,6 +8,7 @@ const sv = {
   search: "Sök",
   actions: "Åtgärder",
   name: "Namn",
+  title: "Titel",
   description: "Beskrivning",
   status: "Status",
   active: "Aktiv",
@@ -36,6 +37,7 @@ const sv = {
     openMenu: "Öppna meny",
     view: (name: string) => `Visa ${name}`,
     edit: (name: string) => `Redigera ${name}`,
+    delete: (name: string) => `Ta bort ${name}`,
   },
 
   // Roles
@@ -73,6 +75,7 @@ const sv = {
     newSystem: "Nytt system",
     editSystem: "Redigera",
     searchPlaceholder: "Sök system...",
+    selectPlaceholder: "Välj system...",
     systemId: "System-ID",
     systemIdPlaceholder: "t.ex. SYS-005",
     hosting: "Hosting",
@@ -146,6 +149,8 @@ const sv = {
     } as Record<string, string>,
     statuses: {
       open: "Öppen",
+      mitigated: "Åtgärdad",
+      accepted: "Accepterad",
       closed: "Stängd",
     } as Record<string, string>,
   },

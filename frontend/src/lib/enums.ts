@@ -45,6 +45,8 @@ export const RISK_LEVEL: EnumMap = {
 
 export const RISK_STATUS: EnumMap = {
   open: { label: t.risks.statuses.open, color: "error" },
+  mitigated: { label: t.risks.statuses.mitigated, color: "success" },
+  accepted: { label: t.risks.statuses.accepted, color: "warning" },
   closed: { label: t.risks.statuses.closed, color: "tertiary" },
 };
 

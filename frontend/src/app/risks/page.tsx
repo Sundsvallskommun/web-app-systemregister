@@ -1,23 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Typography, Box, Paper, Table, TableHead, TableRow, TableCell, TableBody,
-  Chip, Button, Alert, IconButton,
-} from "@mui/material";
-import { Add, Warning, Delete } from "@mui/icons-material";
+import { Button, Label, Table } from "@sk-web-gui/react";
+import { Plus, Trash2 } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import RiskFormDialog from "@/components/RiskFormDialog";
+import EnumLabel from "@/components/EnumLabel";
 import { useAuth } from "@/lib/auth";
-import { useRisks, type Risk } from "@/lib/riskStore";
+import { useRisks } from "@/lib/riskStore";
+import { RISK_LEVEL, RISK_STATUS } from "@/lib/enums";
 import t from "@/lib/i18n";
-
-const LEVEL_COLORS: Record<string, "success" | "warning" | "error" | "info"> = {
-  low: "success", medium: "info", high: "warning", critical: "error",
-};
-const STATUS_COLORS: Record<string, "success" | "warning" | "error" | "default"> = {
-  open: "error", mitigated: "success", accepted: "warning", closed: "default",
-};
 
 export default function RisksPage() {
   const { auth } = useAuth();
@@ -27,47 +19,79 @@ export default function RisksPage() {
 
   return (
     <AppShell>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Warning color="warning" />
-          <Typography variant="h4">{t.risks.title}</Typography>
-        </Box>
-        {canEdit && <Button variant="contained" startIcon={<Add />} onClick={() => setDialogOpen(true)}>{t.risks.newRisk}</Button>}
-      </Box>
+      <div className="flex justify-between items-center mb-24">
+        <h1 className="text-h2">{t.risks.title}</h1>
+        {canEdit && (
+          <Button
+            variant="primary"
+            leftIcon={<Plus />}
+            onClick={() => setDialogOpen(true)}
+          >
+            {t.risks.newRisk}
+          </Button>
+        )}
+      </div>
 
-      <Alert severity="info" sx={{ mb: 3 }}>{t.risks.infoText}</Alert>
+      <p className="mb-24">{t.risks.infoText}</p>
 
-      <Paper>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Risk</TableCell><TableCell>System</TableCell><TableCell>{t.risks.probability}</TableCell>
-              <TableCell>{t.risks.impact}</TableCell><TableCell>Status</TableCell><TableCell>{t.risks.responsible}</TableCell>
-              <TableCell>{t.risks.deadline}</TableCell>{canEdit && <TableCell align="right">{t.actions}</TableCell>}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {risks.map((risk) => (
-              <TableRow key={risk.id} hover>
-                <TableCell>{risk.title}</TableCell>
-                <TableCell><Chip label={risk.system} size="small" variant="outlined" /></TableCell>
-                <TableCell><Chip label={risk.probability} size="small" color={LEVEL_COLORS[risk.probability]} /></TableCell>
-                <TableCell><Chip label={risk.impact} size="small" color={LEVEL_COLORS[risk.impact]} /></TableCell>
-                <TableCell><Chip label={risk.status} size="small" color={STATUS_COLORS[risk.status]} /></TableCell>
-                <TableCell>{risk.owner}</TableCell>
-                <TableCell>{risk.dueDate}</TableCell>
-                {canEdit && (
-                  <TableCell align="right">
-                    <IconButton size="small" onClick={() => setRisks(risks.filter((r) => r.id !== risk.id))}><Delete /></IconButton>
-                  </TableCell>
-                )}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Paper>
+      <Table background scrollable="x">
+        <Table.Header>
+          <Table.HeaderColumn>{t.risks.risk}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.risks.system}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.risks.probability}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.risks.impact}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.status}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.risks.responsible}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.risks.deadline}</Table.HeaderColumn>
+          {canEdit && (
+            <Table.HeaderColumn className="justify-end">
+              {t.actions}
+            </Table.HeaderColumn>
+          )}
+        </Table.Header>
+        <Table.Body>
+          {risks.map((risk) => (
+            <Table.Row key={risk.id}>
+              <Table.Column>{risk.title}</Table.Column>
+              <Table.Column>
+                <Label color="tertiary">{risk.system}</Label>
+              </Table.Column>
+              <Table.Column>
+                <EnumLabel value={risk.probability} map={RISK_LEVEL} />
+              </Table.Column>
+              <Table.Column>
+                <EnumLabel value={risk.impact} map={RISK_LEVEL} />
+              </Table.Column>
+              <Table.Column>
+                <EnumLabel value={risk.status} map={RISK_STATUS} />
+              </Table.Column>
+              <Table.Column>{risk.owner}</Table.Column>
+              <Table.Column>{risk.dueDate}</Table.Column>
+              {canEdit && (
+                <Table.Column className="justify-end">
+                  <Button
+                    iconButton
+                    size="sm"
+                    variant="tertiary"
+                    aria-label={t.a11y.delete(risk.title)}
+                    onClick={() =>
+                      setRisks(risks.filter((r) => r.id !== risk.id))
+                    }
+                  >
+                    <Trash2 />
+                  </Button>
+                </Table.Column>
+              )}
+            </Table.Row>
+          ))}
+        </Table.Body>
+      </Table>
 
-      <RiskFormDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onSave={(risk) => setRisks([...risks, risk])} />
+      <RiskFormDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onSave={(risk) => setRisks([...risks, risk])}
+      />
     </AppShell>
   );
 }
