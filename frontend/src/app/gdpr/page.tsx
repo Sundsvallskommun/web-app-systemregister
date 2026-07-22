@@ -63,7 +63,7 @@ export default function GdprPage() {
           {treatments.map((treatment) => (
             <Table.Row key={treatment.behandlingId}>
               <Table.Column>
-                <Label color="tertiary">{treatment.behandlingId}</Label>
+                <Label color="tertiary" className="whitespace-nowrap">{treatment.behandlingId}</Label>
               </Table.Column>
               <Table.Column>{treatment.name}</Table.Column>
               <Table.Column>
@@ -89,7 +89,7 @@ export default function GdprPage() {
                 {treatment.SystemModels?.length ? (
                   <div className="inline-flex flex-wrap gap-4">
                     {treatment.SystemModels.map((s) => (
-                      <Label key={s.id} color="tertiary">
+                      <Label key={s.id} color="tertiary" className="whitespace-nowrap">
                         {s.systemId}
                       </Label>
                     ))}
@@ -127,7 +127,7 @@ export default function GdprPage() {
         onClose={() => setSelected(null)}
         maxWidth="md"
       >
-        <div className="grid grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
           <p className="text-small">
             <strong>{t.gdpr.treatmentId}:</strong>{" "}
             {selected?.behandlingId ?? t.emptyValue}
@@ -170,7 +170,7 @@ export default function GdprPage() {
           {selected?.SystemModels?.length ? (
             <div className="flex flex-wrap gap-4">
               {selected.SystemModels.map((s) => (
-                <Label key={s.id} color="tertiary">
+                <Label key={s.id} color="tertiary" className="whitespace-nowrap">
                   {s.systemId} — {s.name}
                 </Label>
               ))}

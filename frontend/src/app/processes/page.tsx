@@ -42,7 +42,7 @@ export default function ProcessesPage() {
           {systems.map((sys) => (
             <Table.Row key={sys.id}>
               <Table.Column>
-                <Label color="tertiary">{sys.systemId}</Label>
+                <Label color="tertiary" className="whitespace-nowrap">{sys.systemId}</Label>
               </Table.Column>
               <Table.Column>{sys.name}</Table.Column>
               <Table.Column>{sys.ownerOrg?.name ?? t.emptyValue}</Table.Column>

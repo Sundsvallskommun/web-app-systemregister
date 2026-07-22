@@ -12,7 +12,7 @@ interface EnumLabelProps {
 export default function EnumLabel({ value, map, rounded }: EnumLabelProps) {
   const meta = metaFor(map, value);
   return (
-    <Label color={meta.color} rounded={rounded}>
+    <Label color={meta.color} rounded={rounded} className="whitespace-nowrap">
       {meta.label}
     </Label>
   );

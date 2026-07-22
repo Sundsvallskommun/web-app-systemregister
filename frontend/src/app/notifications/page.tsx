@@ -50,7 +50,7 @@ export default function NotificationsPage() {
 
       {unread > 0 && (
         <div className="mb-16">
-          <Label color="info">{t.notifications.unreadCount(unread)}</Label>
+          <Label color="info" className="whitespace-nowrap">{t.notifications.unreadCount(unread)}</Label>
         </div>
       )}
 

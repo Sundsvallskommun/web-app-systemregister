@@ -168,7 +168,7 @@ export default function SystemFormDialog({
       error={error}
       saveLabel={mode === "create" ? t.create : t.save}
     >
-      <div className="grid grid-cols-2 gap-16">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-16">
         {mode === "create" && (
           <Field label={systemsText.systemId} required>
             <TextField
@@ -273,17 +273,17 @@ export default function SystemFormDialog({
             ))}
           </Select>
         </Field>
-        <Field label={t.description} className="col-span-2">
+        <Field label={t.description} className="sm:col-span-2">
           <Textarea
             rows={3}
             value={form.description}
             onChange={(e) => update("description", e.target.value)}
           />
         </Field>
-        <div className="col-span-2">
+        <div className="sm:col-span-2">
           <p className="text-small font-bold mb-14">{t.krt.title}</p>
           <div className="flex flex-col gap-12">
-            <div className="flex items-center">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-0">
               <span className="text-small w-[12rem] shrink-0">
                 {t.krt.confidentiality}
               </span>
@@ -292,7 +292,7 @@ export default function SystemFormDialog({
                 onChange={(v) => update("konfidentialitet", v)}
               />
             </div>
-            <div className="flex items-center">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-0">
               <span className="text-small w-[12rem] shrink-0">
                 {t.krt.integrity}
               </span>
@@ -301,7 +301,7 @@ export default function SystemFormDialog({
                 onChange={(v) => update("riktighet", v)}
               />
             </div>
-            <div className="flex items-center">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-0">
               <span className="text-small w-[12rem] shrink-0">
                 {t.krt.availability}
               </span>

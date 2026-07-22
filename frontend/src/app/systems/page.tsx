@@ -103,7 +103,7 @@ export default function SystemsPage() {
           {filtered.map((sys) => (
             <Table.Row key={sys.id}>
               <Table.Column>
-                <Label color="tertiary">{sys.systemId}</Label>
+                <Label color="tertiary" className="whitespace-nowrap">{sys.systemId}</Label>
               </Table.Column>
               <Table.Column>{sys.name}</Table.Column>
               <Table.Column>
@@ -169,7 +169,7 @@ export default function SystemsPage() {
         title={selected?.name ?? ""}
         onClose={() => setSelected(null)}
       >
-        <div className="grid grid-cols-2 gap-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-16">
           <p className="text-small">
             <strong>{t.systems.systemId}:</strong> {selected?.systemId}
           </p>
@@ -219,7 +219,7 @@ export default function SystemsPage() {
         </p>
         <div className="mt-16">
           <p className="text-small font-bold mb-8">{t.krt.title}</p>
-          <div className="flex gap-8">
+          <div className="flex flex-wrap gap-8">
             <div className="flex flex-col gap-4 w-[10rem]">
               <span className="text-small">{t.krt.confidentiality}</span>
               <KrtChip value={selected?.konfidentialitet ?? 0} />
@@ -244,7 +244,7 @@ export default function SystemsPage() {
               <p className="text-small font-bold mb-8">
                 {t.risks.title} ({systemRisks.length})
               </p>
-              <Table background dense>
+              <Table background dense scrollable="x">
                 <Table.Header>
                   <Table.HeaderColumn>{t.risks.risk}</Table.HeaderColumn>
                   <Table.HeaderColumn>{t.risks.probability}</Table.HeaderColumn>

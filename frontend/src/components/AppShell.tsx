@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { Button, Header, MenuVertical, UserMenu } from "@sk-web-gui/react";
-import { LogOut, Menu as MenuIcon } from "lucide-react";
+import { LogOut, Menu as MenuIcon, X } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import t from "@/lib/i18n";
 
@@ -39,7 +39,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     if (!auth) router.replace("/");
   }, [auth, router]);
 
-  // Close the mobile drawer whenever the route changes.
   useEffect(() => {
     setMobileNavOpen(false);
   }, [pathname]);
@@ -126,11 +125,34 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {mobileNavOpen && (
           <div className="md:hidden">
             <div
-              className="fixed inset-0 z-40 bg-overlay-darken-6"
+              className="fixed inset-0 z-40 bg-primitives-overlay-darken-6 transition-opacity"
               onClick={() => setMobileNavOpen(false)}
+              aria-hidden
             />
-            <div className="fixed left-0 top-0 bottom-0 z-50 w-4/5 max-w-[32rem] overflow-y-auto bg-background-content p-16 shadow-100">
+            <div className="fixed right-0 top-0 bottom-0 z-50 w-4/5 max-w-[32rem] overflow-y-auto bg-background-content p-16 shadow-100">
+              <div className="mb-16 flex justify-end">
+                <Button
+                  iconButton
+                  variant="tertiary"
+                  aria-label={t.a11y.closeMenu}
+                  onClick={() => setMobileNavOpen(false)}
+                >
+                  <X />
+                </Button>
+              </div>
               {nav}
+              <div className="mt-16 border-t border-divider pt-16">
+                <p className="mb-8 text-small text-dark-secondary">
+                  {auth.username} · {roleLabel}
+                </p>
+                <Button
+                  variant="tertiary"
+                  leftIcon={<LogOut />}
+                  onClick={handleLogout}
+                >
+                  {t.logout}
+                </Button>
+              </div>
             </div>
           </div>
         )}

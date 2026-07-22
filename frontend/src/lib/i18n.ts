@@ -37,6 +37,7 @@ const sv = {
   // Accessibility (aria-labels)
   a11y: {
     openMenu: "Öppna meny",
+    closeMenu: "Stäng meny",
     view: (name: string) => `Visa ${name}`,
     edit: (name: string) => `Redigera ${name}`,
     delete: (name: string) => `Ta bort ${name}`,

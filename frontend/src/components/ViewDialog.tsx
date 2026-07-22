@@ -6,10 +6,10 @@ import t from "@/lib/i18n";
 export type DialogWidth = "xs" | "sm" | "md" | "lg";
 
 export const MAX_WIDTH_CLASS: Record<DialogWidth, string> = {
-  xs: "max-w-[32rem]",
-  sm: "max-w-[42rem]",
-  md: "max-w-[64rem]",
-  lg: "max-w-[80rem]",
+  xs: "w-full max-w-[32rem]",
+  sm: "w-full max-w-[42rem]",
+  md: "w-full max-w-[64rem]",
+  lg: "w-full max-w-[80rem]",
 };
 
 interface ViewDialogProps {

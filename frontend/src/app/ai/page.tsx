@@ -70,7 +70,7 @@ export default function AiPage() {
           {apps.map((app) => (
             <Table.Row key={app.aiApplicationId}>
               <Table.Column>
-                <Label color="tertiary">{app.aiApplicationId}</Label>
+                <Label color="tertiary" className="whitespace-nowrap">{app.aiApplicationId}</Label>
               </Table.Column>
               <Table.Column>{app.name}</Table.Column>
               <Table.Column>
@@ -84,13 +84,13 @@ export default function AiPage() {
                 )}
               </Table.Column>
               <Table.Column>
-                <Label color={app.friaCompleted ? "success" : "warning"}>
+                <Label color={app.friaCompleted ? "success" : "warning"} className="whitespace-nowrap">
                   {app.friaCompleted ? t.ai.friaDone : t.ai.friaNotDone}
                 </Label>
               </Table.Column>
               <Table.Column>
                 {app.SystemModel ? (
-                  <Label color="tertiary">{app.SystemModel.systemId}</Label>
+                  <Label color="tertiary" className="whitespace-nowrap">{app.SystemModel.systemId}</Label>
                 ) : (
                   t.emptyValue
                 )}
@@ -125,7 +125,7 @@ export default function AiPage() {
         onClose={() => setSelected(null)}
         maxWidth="md"
       >
-        <div className="grid grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
           <p className="text-small">
             <strong>{t.ai.appId}:</strong> {selected?.aiApplicationId}
           </p>
