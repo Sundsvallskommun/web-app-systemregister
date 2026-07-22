@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "cypress:open": "cypress open"
   },
   "dependencies": {
     "@sk-web-gui/core": "^4.6.0",
@@ -21,6 +22,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.5.4",
+    "cypress": "^15.19.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
     "postcss": "^8.5.19",
