@@ -125,7 +125,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {mobileNavOpen && (
           <div className="md:hidden">
             <div
-              className="fixed inset-0 z-40 bg-primitives-overlay-darken-6 transition-opacity"
+              className="fixed inset-0 z-40 bg-primitives-overlay-darken-8"
               onClick={() => setMobileNavOpen(false)}
               aria-hidden
             />
