@@ -13,7 +13,7 @@ import t from "@/lib/i18n";
 function classLevel(
   k: number,
   r: number,
-  t_: number
+  t_: number,
 ): { label: string; color: SemanticColor } {
   const max = Math.max(k, r, t_);
   if (max >= 4) return { label: t.krt.levels.critical, color: "error" };
@@ -61,15 +61,19 @@ export default function ClassificationsPage() {
             const cl = classLevel(
               sys.konfidentialitet,
               sys.riktighet,
-              sys.tillganglighet
+              sys.tillganglighet,
             );
             return (
               <Table.Row key={sys.id}>
                 <Table.Column>
-                  <Label color="tertiary" className="whitespace-nowrap">{sys.systemId}</Label>
+                  <Label color="tertiary" className="whitespace-nowrap">
+                    {sys.systemId}
+                  </Label>
                 </Table.Column>
                 <Table.Column>{sys.name}</Table.Column>
-                <Table.Column>{sys.ownerOrg?.name ?? t.emptyValue}</Table.Column>
+                <Table.Column>
+                  {sys.ownerOrg?.name ?? t.emptyValue}
+                </Table.Column>
                 <Table.Column className="justify-center">
                   <KrtChip value={sys.konfidentialitet} />
                 </Table.Column>
@@ -86,7 +90,8 @@ export default function ClassificationsPage() {
                   {sys.CriticalityLevel ? (
                     <Label
                       color={
-                        KRT_LEVEL_COLOR[sys.CriticalityLevel.level] ?? "tertiary"
+                        KRT_LEVEL_COLOR[sys.CriticalityLevel.level] ??
+                        "tertiary"
                       }
                     >
                       {sys.CriticalityLevel.name}

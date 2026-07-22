@@ -70,8 +70,8 @@ export default function RiskFormDialog({ open, onClose, onSave }: Props) {
             (res.data ?? []).map((s) => ({
               id: s.systemId,
               label: `${s.systemId} — ${s.name}`,
-            }))
-          )
+            })),
+          ),
         )
         .catch(() => {});
     }
@@ -145,7 +145,9 @@ export default function RiskFormDialog({ open, onClose, onSave }: Props) {
             onChange={(e) => update("system", e.target.value)}
             className="w-full"
           >
-            <Select.Option value="">{t.systems.selectPlaceholder}</Select.Option>
+            <Select.Option value="">
+              {t.systems.selectPlaceholder}
+            </Select.Option>
             {systemOptions.map((s) => (
               <Select.Option key={s.id} value={s.id}>
                 {s.label}

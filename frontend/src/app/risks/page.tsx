@@ -54,7 +54,9 @@ export default function RisksPage() {
             <Table.Row key={risk.id}>
               <Table.Column>{risk.title}</Table.Column>
               <Table.Column>
-                <Label color="tertiary" className="whitespace-nowrap">{risk.system}</Label>
+                <Label color="tertiary" className="whitespace-nowrap">
+                  {risk.system}
+                </Label>
               </Table.Column>
               <Table.Column>
                 <EnumLabel value={risk.probability} map={RISK_LEVEL} />

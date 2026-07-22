@@ -16,10 +16,40 @@ interface Notification {
 }
 
 const SAMPLE: Notification[] = [
-  { id: "1", type: "contract", title: "Avtal med TechSys AB går ut", description: "Avtalet för Raindance löper ut 2026-06-30. Initiera förnyelse.", date: "2026-03-28", read: false },
-  { id: "2", type: "security", title: "Saknad MFA för ByggR", description: "Riskanalys flaggar att ByggR saknar multifaktorautentisering.", date: "2026-03-27", read: false },
-  { id: "3", type: "warning", title: "Backup ej verifierad - Treserva", description: "Backup för SYS-003 har inte verifierats på över 30 dagar.", date: "2026-03-25", read: true },
-  { id: "4", type: "info", title: "Behörighetsgranskning slutförd", description: "Metakoppling: granskning avklarad.", date: "2026-03-20", read: true },
+  {
+    id: "1",
+    type: "contract",
+    title: "Avtal med TechSys AB går ut",
+    description:
+      "Avtalet för Raindance löper ut 2026-06-30. Initiera förnyelse.",
+    date: "2026-03-28",
+    read: false,
+  },
+  {
+    id: "2",
+    type: "security",
+    title: "Saknad MFA för ByggR",
+    description:
+      "Riskanalys flaggar att ByggR saknar multifaktorautentisering.",
+    date: "2026-03-27",
+    read: false,
+  },
+  {
+    id: "3",
+    type: "warning",
+    title: "Backup ej verifierad - Treserva",
+    description: "Backup för SYS-003 har inte verifierats på över 30 dagar.",
+    date: "2026-03-25",
+    read: true,
+  },
+  {
+    id: "4",
+    type: "info",
+    title: "Behörighetsgranskning slutförd",
+    description: "Metakoppling: granskning avklarad.",
+    date: "2026-03-20",
+    read: true,
+  },
 ];
 
 const ALERT_TYPE: Record<
@@ -50,7 +80,9 @@ export default function NotificationsPage() {
 
       {unread > 0 && (
         <div className="mb-16">
-          <Label color="info" className="whitespace-nowrap">{t.notifications.unreadCount(unread)}</Label>
+          <Label color="info" className="whitespace-nowrap">
+            {t.notifications.unreadCount(unread)}
+          </Label>
         </div>
       )}
 

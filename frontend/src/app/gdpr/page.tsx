@@ -13,7 +13,7 @@ import { GDPR_STATUS, metaFor } from "@/lib/enums";
 import t from "@/lib/i18n";
 
 const legalBasisLabel = (value?: string) =>
-  value ? t.gdpr.legalBases[value.toLowerCase()] ?? value : t.emptyValue;
+  value ? (t.gdpr.legalBases[value.toLowerCase()] ?? value) : t.emptyValue;
 
 const statusLabel = (value?: string) =>
   value ? metaFor(GDPR_STATUS, value).label : t.emptyValue;
@@ -27,7 +27,9 @@ export default function GdprPage() {
 
   useEffect(() => {
     if (!auth) return;
-    get<PPB[]>("/gdpr", auth.token).then(setTreatments).catch(() => {});
+    get<PPB[]>("/gdpr", auth.token)
+      .then(setTreatments)
+      .catch(() => {});
   }, [auth]);
 
   const canEdit = auth?.role === "admin" || auth?.role === "editor";
@@ -63,16 +65,22 @@ export default function GdprPage() {
           {treatments.map((treatment) => (
             <Table.Row key={treatment.behandlingId}>
               <Table.Column>
-                <Label color="tertiary" className="whitespace-nowrap">{treatment.behandlingId}</Label>
+                <Label color="tertiary" className="whitespace-nowrap">
+                  {treatment.behandlingId}
+                </Label>
               </Table.Column>
               <Table.Column>{treatment.name}</Table.Column>
               <Table.Column>
                 <EnumLabel value={treatment.status} map={GDPR_STATUS} />
               </Table.Column>
-              <Table.Column>{legalBasisLabel(treatment.legalBasis)}</Table.Column>
+              <Table.Column>
+                {legalBasisLabel(treatment.legalBasis)}
+              </Table.Column>
               <Table.Column>
                 <Label
-                  color={treatment.processesSensitiveData ? "error" : "tertiary"}
+                  color={
+                    treatment.processesSensitiveData ? "error" : "tertiary"
+                  }
                 >
                   {yesNo(treatment.processesSensitiveData)}
                 </Label>
@@ -89,7 +97,11 @@ export default function GdprPage() {
                 {treatment.SystemModels?.length ? (
                   <div className="inline-flex flex-wrap gap-4">
                     {treatment.SystemModels.map((s) => (
-                      <Label key={s.id} color="tertiary" className="whitespace-nowrap">
+                      <Label
+                        key={s.id}
+                        color="tertiary"
+                        className="whitespace-nowrap"
+                      >
                         {s.systemId}
                       </Label>
                     ))}
@@ -150,7 +162,8 @@ export default function GdprPage() {
               : t.emptyValue}
           </p>
           <p className="text-small">
-            <strong>{t.gdpr.dpiaRequired}:</strong> {yesNo(selected?.dpiaRequired)}
+            <strong>{t.gdpr.dpiaRequired}:</strong>{" "}
+            {yesNo(selected?.dpiaRequired)}
           </p>
           <p className="text-small">
             <strong>{t.gdpr.sensitiveData}:</strong>{" "}
@@ -170,7 +183,7 @@ export default function GdprPage() {
           {selected?.SystemModels?.length ? (
             <div className="flex flex-wrap gap-4">
               {selected.SystemModels.map((s) => (
-                <Label key={s.id} color="tertiary" className="whitespace-nowrap">
+                <Label key={s.id} color="tertiary">
                   {s.systemId} — {s.name}
                 </Label>
               ))}

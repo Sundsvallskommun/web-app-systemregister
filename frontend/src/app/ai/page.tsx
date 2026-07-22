@@ -22,11 +22,11 @@ const riskCategoryLabel = (value?: string) =>
 
 const registrationStatusLabel = (value?: string) =>
   value
-    ? t.ai.registrationStatuses[value.toLowerCase()] ?? value
+    ? (t.ai.registrationStatuses[value.toLowerCase()] ?? value)
     : t.emptyValue;
 
 const highRiskAreaLabel = (value?: string) =>
-  value ? t.ai.highRiskAreas[value.toLowerCase()] ?? value : t.emptyValue;
+  value ? (t.ai.highRiskAreas[value.toLowerCase()] ?? value) : t.emptyValue;
 
 export default function AiPage() {
   const { auth } = useAuth();
@@ -35,7 +35,9 @@ export default function AiPage() {
 
   useEffect(() => {
     if (!auth) return;
-    get<AiApplication[]>("/ai", auth.token).then(setApps).catch(() => {});
+    get<AiApplication[]>("/ai", auth.token)
+      .then(setApps)
+      .catch(() => {});
   }, [auth]);
 
   const canEdit = auth?.role === "admin" || auth?.role === "editor";
@@ -70,7 +72,9 @@ export default function AiPage() {
           {apps.map((app) => (
             <Table.Row key={app.aiApplicationId}>
               <Table.Column>
-                <Label color="tertiary" className="whitespace-nowrap">{app.aiApplicationId}</Label>
+                <Label color="tertiary" className="whitespace-nowrap">
+                  {app.aiApplicationId}
+                </Label>
               </Table.Column>
               <Table.Column>{app.name}</Table.Column>
               <Table.Column>
@@ -84,13 +88,18 @@ export default function AiPage() {
                 )}
               </Table.Column>
               <Table.Column>
-                <Label color={app.friaCompleted ? "success" : "warning"} className="whitespace-nowrap">
+                <Label
+                  color={app.friaCompleted ? "success" : "warning"}
+                  className="whitespace-nowrap"
+                >
                   {app.friaCompleted ? t.ai.friaDone : t.ai.friaNotDone}
                 </Label>
               </Table.Column>
               <Table.Column>
                 {app.SystemModel ? (
-                  <Label color="tertiary" className="whitespace-nowrap">{app.SystemModel.systemId}</Label>
+                  <Label color="tertiary" className="whitespace-nowrap">
+                    {app.SystemModel.systemId}
+                  </Label>
                 ) : (
                   t.emptyValue
                 )}
@@ -155,7 +164,8 @@ export default function AiPage() {
               : t.emptyValue}
           </p>
           <p className="text-small">
-            <strong>{t.owner}:</strong> {selected?.ownerOrg?.name ?? t.emptyValue}
+            <strong>{t.owner}:</strong>{" "}
+            {selected?.ownerOrg?.name ?? t.emptyValue}
           </p>
           <p className="text-small">
             <strong>{t.ai.contact}:</strong>{" "}

@@ -19,7 +19,9 @@ export default function AdminPage() {
 
   const load = useCallback(() => {
     if (!auth || auth.role !== "admin") return;
-    get<AdminUser[]>("/admin", auth.token).then(setUsers).catch(() => {});
+    get<AdminUser[]>("/admin", auth.token)
+      .then(setUsers)
+      .catch(() => {});
   }, [auth]);
 
   useEffect(() => {

@@ -45,7 +45,12 @@ interface Props {
   onSaved: () => void;
 }
 
-export default function SupplierFormDialog({ mode, supplier, onClose, onSaved }: Props) {
+export default function SupplierFormDialog({
+  mode,
+  supplier,
+  onClose,
+  onSaved,
+}: Props) {
   const { auth } = useAuth();
   const [form, setForm] = useState<SupplierForm>(EMPTY);
   const [saving, setSaving] = useState(false);

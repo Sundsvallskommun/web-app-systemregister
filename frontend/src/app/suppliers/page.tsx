@@ -17,13 +17,15 @@ export default function SuppliersPage() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Supplier | null>(null);
   const [dialogMode, setDialogMode] = useState<"closed" | "create" | "edit">(
-    "closed"
+    "closed",
   );
   const [dialogSupplier, setDialogSupplier] = useState<Supplier | null>(null);
 
   const load = useCallback(() => {
     if (!auth) return;
-    get<Supplier[]>("/suppliers", auth.token).then(setSuppliers).catch(() => {});
+    get<Supplier[]>("/suppliers", auth.token)
+      .then(setSuppliers)
+      .catch(() => {});
   }, [auth]);
 
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function SuppliersPage() {
   }, [load]);
 
   const filtered = suppliers.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase())
+    s.name.toLowerCase().includes(search.toLowerCase()),
   );
   const canEdit = auth?.role === "admin" || auth?.role === "editor";
 
