@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "cypress:open": "cypress open"
+    "cypress": "cypress open",
+    "cypress:headless": "cypress run --e2e --headless"
   },
   "dependencies": {
     "@sk-web-gui/core": "^4.6.0",

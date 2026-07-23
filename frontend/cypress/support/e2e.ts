@@ -1,17 +1,28 @@
 // ***********************************************************
-// This example support/e2e.ts is processed and
-// loaded automatically before your test files.
-//
-// This is a great place to put global configuration and
-// behavior that modifies Cypress.
-//
-// You can change the location of this file or turn off
-// automatically serving support files with the
-// 'supportFile' configuration option.
+// This support file is processed and loaded automatically
+// before your test files.
 //
 // You can read more here:
 // https://on.cypress.io/configuration
 // ***********************************************************
 
-// Import commands.js using ES2015 syntax:
-import './commands'
+import "./commands";
+
+beforeEach(() => {
+  cy.intercept("GET", "**/api/systems*", { fixture: "systems.json" }).as(
+    "getSystems",
+  );
+  cy.intercept("GET", "**/api/organizations*", {
+    fixture: "organizations.json",
+  }).as("getOrganizations");
+  cy.intercept("GET", "**/api/suppliers*", { fixture: "suppliers.json" }).as(
+    "getSuppliers",
+  );
+  cy.intercept("GET", "**/api/persons*", { fixture: "persons.json" }).as(
+    "getPersons",
+  );
+  cy.intercept("GET", "**/api/gdpr*", { fixture: "gdpr.json" }).as("getGdpr");
+  cy.intercept("GET", "**/api/ai*", { fixture: "ai.json" }).as("getAi");
+
+  cy.viewport("macbook-16");
+});

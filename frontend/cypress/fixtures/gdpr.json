@@ -1,0 +1,37 @@
+[
+  {
+    "id": "ppb-1",
+    "behandlingId": "PUB-001",
+    "name": "Löneadministration",
+    "description": "Behandling av löneuppgifter för anställda.",
+    "status": "ACTIVE",
+    "purposeDescription": "Administrera löneutbetalningar.",
+    "legalBasis": "RATTSLIG_FORPLIKTELSE",
+    "processesSensitiveData": true,
+    "processesSsn": true,
+    "transfersToThirdCountry": false,
+    "dpiaRequired": true,
+    "controller": { "id": "org-1", "name": "Ekonomiavdelningen" },
+    "dpo": {
+      "id": "p-9",
+      "firstName": "Carin",
+      "lastName": "Dahl",
+      "email": "carin.dahl@sundsvall.se"
+    },
+    "SystemModels": [
+      { "id": "sys-1", "name": "Raindance", "systemId": "SYS-001" }
+    ]
+  },
+  {
+    "id": "ppb-2",
+    "behandlingId": "PUB-002",
+    "name": "Bygglovsansökningar",
+    "status": "INACTIVE",
+    "legalBasis": "ALLMANT_INTRESSE",
+    "processesSensitiveData": false,
+    "processesSsn": true,
+    "transfersToThirdCountry": false,
+    "controller": { "id": "org-2", "name": "Bygglovsenheten" },
+    "SystemModels": []
+  }
+]

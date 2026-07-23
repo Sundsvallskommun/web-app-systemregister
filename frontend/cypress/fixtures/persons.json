@@ -1,0 +1,20 @@
+[
+  {
+    "id": "p-1",
+    "firstName": "Anna",
+    "lastName": "Ek",
+    "email": "anna.ek@sundsvall.se",
+    "title": "Systemförvaltare",
+    "organizationId": "org-1",
+    "Organization": { "id": "org-1", "name": "Ekonomiavdelningen" }
+  },
+  {
+    "id": "p-2",
+    "firstName": "Björn",
+    "lastName": "Sjö",
+    "email": "bjorn.sjo@sundsvall.se",
+    "title": "IT-tekniker",
+    "organizationId": "org-1",
+    "Organization": { "id": "org-1", "name": "Ekonomiavdelningen" }
+  }
+]

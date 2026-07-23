@@ -1,0 +1,35 @@
+[
+  {
+    "id": "ai-1",
+    "aiApplicationId": "AI-001",
+    "name": "Ärendeklassificering",
+    "description": "Automatisk kategorisering av inkommande ärenden.",
+    "status": "ACTIVE",
+    "riskCategory": "HIGH_RISK",
+    "highRiskArea": "ESSENTIAL_SERVICES",
+    "friaCompleted": true,
+    "registrationStatus": "PENDING",
+    "SystemModel": {
+      "id": "sys-1",
+      "name": "Raindance",
+      "systemId": "SYS-001"
+    },
+    "ownerOrg": { "id": "org-1", "name": "Ekonomiavdelningen" },
+    "contact": {
+      "id": "p-3",
+      "firstName": "Dana",
+      "lastName": "Ros",
+      "email": "dana.ros@sundsvall.se"
+    }
+  },
+  {
+    "id": "ai-2",
+    "aiApplicationId": "AI-002",
+    "name": "Chattbot medborgarservice",
+    "status": "DRAFT",
+    "riskCategory": "LIMITED_RISK",
+    "friaCompleted": false,
+    "registrationStatus": "NOT_REQUIRED",
+    "ownerOrg": { "id": "org-3", "name": "Socialtjänsten" }
+  }
+]

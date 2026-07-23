@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const [ppbCount, setPpbCount] = useState(0);
   const [aiCount, setAiCount] = useState(0);
   const [recentSystems, setRecentSystems] = useState<System[]>([]);
+  const role = auth?.role;
 
   useEffect(() => {
     if (!auth) return;
@@ -39,8 +40,6 @@ export default function DashboardPage() {
       .catch(() => {});
   }, [auth]);
 
-  if (!auth) return null;
-
   const cards = [
     { label: t.systems.title, value: systemCount, icon: <Server /> },
     { label: t.dashboard.organizations, value: orgCount, icon: <Building2 /> },
@@ -52,9 +51,11 @@ export default function DashboardPage() {
     <AppShell>
       <div className="mb-24 flex flex-col gap-8">
         <h1 className="text-h2">{t.dashboard.title}</h1>
-        <div>
-          <Label color="info">{t.roleDashboards[auth.role]}</Label>
-        </div>
+        {role && (
+          <div>
+            <Label color="info">{t.roleDashboards[auth.role]}</Label>
+          </div>
+        )}
       </div>
 
       <div className="mb-32 grid gap-16 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
