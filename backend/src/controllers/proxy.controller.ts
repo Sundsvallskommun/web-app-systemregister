@@ -96,9 +96,12 @@ export function buildProxyRouter(resource: string, opts: ProxyRouterOptions = {}
     }
   });
 
+  // api-service stödjer inte PATCH — endast PUT
   router.patch('/:id', requireRole(...writeRoles), async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = await apiService.patch(`${resource}/${req.params.id}`, transformBody(req.body));
+      const current = await apiService.get<Record<string, unknown>>(`${resource}/${req.params.id}`);
+      const merged = { ...current, ...(transformBody(req.body) as Record<string, unknown>) };
+      const data = await apiService.put(`${resource}/${req.params.id}`, merged);
       res.json(data);
     } catch (err) {
       next(err);

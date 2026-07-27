@@ -72,10 +72,13 @@ router.put('/:id', requireRole(...writeRoles), async (req, res, next) => {
   }
 });
 
+  // api-service stödjer inte PATCH — endast PUT
 router.patch('/:id', requireRole(...writeRoles), async (req, res, next) => {
   try {
-    const body = uppercaseEnumFields(req.body, SYSTEM_ENUM_FIELDS);
-    const data = await apiService.patch(`systems/${req.params.id}`, body);
+    const body = uppercaseEnumFields(req.body, SYSTEM_ENUM_FIELDS) as Record<string, unknown>;
+    const current = await apiService.get<Record<string, unknown>>(`systems/${req.params.id}`);
+    const merged = { ...current, ...body };
+    const data = await apiService.put(`systems/${req.params.id}`, merged);
     res.json(data);
   } catch (err) {
     next(err);
