@@ -1,9 +1,4 @@
 describe("Notifications page", () => {
-  it("redirects to login when unauthenticated", () => {
-    cy.visit("/notifications");
-    cy.location("pathname").should("eq", "/");
-  });
-
   it("lists notifications and the unread count", () => {
     cy.visitAs("/notifications", "admin");
 

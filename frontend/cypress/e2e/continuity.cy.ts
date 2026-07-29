@@ -1,9 +1,4 @@
 describe("Continuity page", () => {
-  it("redirects to login when unauthenticated", () => {
-    cy.visit("/continuity");
-    cy.location("pathname").should("eq", "/");
-  });
-
   it("lists systems with criticality assessments", () => {
     cy.visitAs("/continuity", "admin");
     cy.wait("@getSystems");

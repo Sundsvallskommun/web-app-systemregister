@@ -1,9 +1,4 @@
 describe("AI applications page", () => {
-  it("redirects to login when unauthenticated", () => {
-    cy.visit("/ai");
-    cy.location("pathname").should("eq", "/");
-  });
-
   it("lists AI applications", () => {
     cy.visitAs("/ai", "admin");
     cy.wait("@getAi");

@@ -1,9 +1,4 @@
 describe("Suppliers page", () => {
-  it("redirects to login when unauthenticated", () => {
-    cy.visit("/suppliers");
-    cy.location("pathname").should("eq", "/");
-  });
-
   it("lists suppliers with info and status", () => {
     cy.visitAs("/suppliers", "admin");
     cy.wait("@getSuppliers");

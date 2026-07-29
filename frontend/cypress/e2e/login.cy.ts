@@ -1,3 +1,10 @@
+describe("Authentication", () => {
+  it("redirects to login when unauthenticated", () => {
+    cy.visit("/dashboard");
+    cy.location("pathname").should("eq", "/");
+  });
+});
+
 describe("Login page", () => {
   beforeEach(() => {
     cy.visit("/");

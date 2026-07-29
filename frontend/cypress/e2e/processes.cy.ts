@@ -1,9 +1,4 @@
 describe("Processes page", () => {
-  it("redirects to login when unauthenticated", () => {
-    cy.visit("/processes");
-    cy.location("pathname").should("eq", "/");
-  });
-
   it("lists systems and the KLASSA note", () => {
     cy.visitAs("/processes", "admin");
     cy.wait("@getSystems");

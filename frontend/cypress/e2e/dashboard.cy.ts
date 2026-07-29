@@ -1,9 +1,4 @@
 describe("Dashboard page", () => {
-  it("redirects to login when unauthenticated", () => {
-    cy.visit("/dashboard");
-    cy.location("pathname").should("eq", "/");
-  });
-
   it("shows summary cards with counters", () => {
     cy.visitAs("/dashboard", "admin");
     cy.wait("@getSystems");

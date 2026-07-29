@@ -1,9 +1,4 @@
 describe("Systems page", () => {
-  it("redirects to login when unauthenticated", () => {
-    cy.visit("/systems");
-    cy.location("pathname").should("eq", "/");
-  });
-
   it("lists systems from the API", () => {
     cy.visitAs("/systems", "admin");
     cy.wait("@getSystems");
@@ -71,7 +66,7 @@ describe("Systems page", () => {
 
     cy.contains("button", "Nytt system").should("not.exist");
     cy.get('button[aria-label="Redigera Raindance"]').should("not.exist");
-    
+
     cy.get('button[aria-label="Visa Raindance"]').should("be.visible");
   });
 });

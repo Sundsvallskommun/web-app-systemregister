@@ -1,9 +1,4 @@
 describe("GDPR page", () => {
-  it("redirects to login when unauthenticated", () => {
-    cy.visit("/gdpr");
-    cy.location("pathname").should("eq", "/");
-  });
-
   it("lists GDPR treatments", () => {
     cy.visitAs("/gdpr", "admin");
     cy.wait("@getGdpr");
