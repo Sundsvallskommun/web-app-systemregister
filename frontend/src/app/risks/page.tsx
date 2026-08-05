@@ -44,7 +44,7 @@ export default function RisksPage() {
           <Table.HeaderColumn>{t.risks.responsible}</Table.HeaderColumn>
           <Table.HeaderColumn>{t.risks.deadline}</Table.HeaderColumn>
           {canEdit && (
-            <Table.HeaderColumn className="justify-end">
+            <Table.HeaderColumn className="justify-end" sticky={true}>
               {t.actions}
             </Table.HeaderColumn>
           )}
@@ -70,7 +70,7 @@ export default function RisksPage() {
               <Table.Column>{risk.owner}</Table.Column>
               <Table.Column>{risk.dueDate}</Table.Column>
               {canEdit && (
-                <Table.Column className="justify-end">
+                <Table.Column className="justify-end" sticky={true}>
                   <Button
                     iconButton
                     size="sm"

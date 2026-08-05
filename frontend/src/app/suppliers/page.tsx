@@ -71,7 +71,7 @@ export default function SuppliersPage() {
           <Table.HeaderColumn>{t.suppliers.contactEmail}</Table.HeaderColumn>
           <Table.HeaderColumn>{t.suppliers.website}</Table.HeaderColumn>
           <Table.HeaderColumn>{t.status}</Table.HeaderColumn>
-          <Table.HeaderColumn className="justify-end">
+          <Table.HeaderColumn className="justify-end" sticky={true}>
             {t.actions}
           </Table.HeaderColumn>
         </Table.Header>
@@ -87,7 +87,7 @@ export default function SuppliersPage() {
                   {sup.isActive ? t.active : t.inactive}
                 </Label>
               </Table.Column>
-              <Table.Column className="justify-end">
+              <Table.Column className="justify-end" sticky={true}>
                 <div className="inline-flex gap-4">
                   <Button
                     iconButton

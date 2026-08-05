@@ -119,7 +119,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         }
       />
 
-      <div className="flex">
+      <div className="flex mx-auto max-w-content">
         <div className="hidden md:block w-[26rem] shrink-0 p-16">{nav}</div>
 
         {mobileNavOpen && (

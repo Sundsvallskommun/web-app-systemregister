@@ -64,7 +64,7 @@ export default function AiPage() {
           <Table.HeaderColumn>{t.ai.fria}</Table.HeaderColumn>
           <Table.HeaderColumn>{t.system}</Table.HeaderColumn>
           <Table.HeaderColumn>{t.owner}</Table.HeaderColumn>
-          <Table.HeaderColumn className="justify-end">
+          <Table.HeaderColumn className="justify-end" sticky={true}>
             {t.actions}
           </Table.HeaderColumn>
         </Table.Header>
@@ -105,7 +105,7 @@ export default function AiPage() {
                 )}
               </Table.Column>
               <Table.Column>{app.ownerOrg?.name ?? t.emptyValue}</Table.Column>
-              <Table.Column className="justify-end">
+              <Table.Column className="justify-end" sticky={true}>
                 <Button
                   iconButton
                   size="sm"
