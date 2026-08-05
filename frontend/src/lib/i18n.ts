@@ -8,26 +8,42 @@ const sv = {
   search: "Sök",
   actions: "Åtgärder",
   name: "Namn",
+  title: "Titel",
   description: "Beskrivning",
   status: "Status",
   active: "Aktiv",
   inactive: "Inaktiv",
   owner: "Ägare",
+  system: "System",
   version: "Version",
   yes: "Ja",
   no: "Nej",
   loading: "Laddar...",
   noResults: "Inga resultat hittades",
   required: (field: string) => `${field} är obligatoriskt`,
+  saveFailed: "Kunde inte spara",
+  emptyValue: "-",
 
   // Auth
   login: "Logga in",
   loggingIn: "Loggar in...",
   loginFailed: "Inloggningen misslyckades",
   username: "Användarnamn",
+  email: "E-post",
   password: "Lösenord",
   logout: "Logga ut",
   sessionExpired: "Sessionen har gått ut",
+
+  // Accessibility (aria-labels)
+  a11y: {
+    openMenu: "Öppna meny",
+    closeMenu: "Stäng meny",
+    view: (name: string) => `Visa ${name}`,
+    edit: (name: string) => `Redigera ${name}`,
+    delete: (name: string) => `Ta bort ${name}`,
+    showPassword: "Visa lösenord",
+    hidePassword: "Dölj lösenord",
+  },
 
   // Roles
   roles: {
@@ -58,13 +74,22 @@ const sv = {
     admin: "Administration",
   },
 
+  // Dashboard
+  dashboard: {
+    title: "Dashboard",
+    organizations: "Organisationer",
+    recentSystems: "Senaste system",
+  },
+
   // Systems
   systems: {
     title: "System",
     newSystem: "Nytt system",
     editSystem: "Redigera",
     searchPlaceholder: "Sök system...",
+    selectPlaceholder: "Välj system...",
     systemId: "System-ID",
+    systemIdPlaceholder: "t.ex. SYS-005",
     hosting: "Hosting",
     supplier: "Leverantör",
     ownerOrg: "Ägande organisation",
@@ -72,6 +97,17 @@ const sv = {
     technicalContact: "Teknisk kontakt",
     criticality: "Kritikalitet",
     noSystems: "Inga system hittades",
+    statuses: {
+      planned: "Planerad",
+      development: "Under utveckling",
+      production: "I produktion",
+      deprecated: "Föråldrad",
+      retired: "Avvecklad",
+    } as Record<string, string>,
+    hostingTypes: {
+      cloud: "Moln",
+      internal: "Intern",
+    } as Record<string, string>,
   },
 
   // KRT Classification
@@ -80,6 +116,8 @@ const sv = {
     confidentiality: "Konfidentialitet",
     integrity: "Riktighet",
     availability: "Tillgänglighet",
+    short: { k: "K", r: "R", t: "T" },
+    abbr: "K/R/T",
     assessment: "Bedömning",
     levels: {
       critical: "Verksamhetskritiskt",
@@ -87,7 +125,8 @@ const sv = {
       medium: "Medium",
       low: "Lågt",
     },
-    infoText: "Klassning av konfidentialitet, riktighet och tillgänglighet för varje system. Beroende av klassningen bedöms om systemet är verksamhetskritiskt och sedan samhällsviktigt.",
+    infoText:
+      "Klassning av konfidentialitet, riktighet och tillgänglighet för varje system. Beroende av klassningen bedöms om systemet är verksamhetskritiskt och sedan samhällsviktigt.",
   },
 
   // Suppliers
@@ -97,14 +136,17 @@ const sv = {
     editSupplier: "Redigera",
     searchPlaceholder: "Sök leverantör...",
     orgNumber: "Organisationsnummer",
+    orgNumberPlaceholder: "t.ex. 556123-4567",
     contactEmail: "Kontakt e-post",
     website: "Webbplats",
+    websitePlaceholder: "https://...",
     noSuppliers: "Inga leverantörer hittades",
   },
 
   // Risks
   risks: {
     title: "Riskanalys",
+    risk: "Risk",
     newRisk: "Ny risk",
     infoText: "Dokumentera och följ upp risker kopplade till system.",
     probability: "Sannolikhet",
@@ -117,14 +159,22 @@ const sv = {
       medium: "Medium",
       high: "Hög",
       critical: "Kritisk",
-    },
+    } as Record<string, string>,
+    statuses: {
+      open: "Öppen",
+      mitigated: "Åtgärdad",
+      accepted: "Accepterad",
+      closed: "Stängd",
+    } as Record<string, string>,
   },
 
   // GDPR
   gdpr: {
     title: "GDPR-behandlingar",
     newTreatment: "Ny behandling",
-    infoText: "Register över personuppgiftsbehandlingar enligt GDPR artikel 30.",
+    infoText:
+      "Register över personuppgiftsbehandlingar enligt GDPR artikel 30.",
+    noTreatments: "Inga behandlingar hittades",
     treatmentId: "Behandlings-ID",
     legalBasis: "Laglig grund",
     sensitiveData: "Känsliga uppg.",
@@ -150,31 +200,52 @@ const sv = {
     title: "AI-tillämpningar",
     newApp: "Ny AI-tillämpning",
     infoText: "Register över AI-tillämpningar enligt EU AI Act.",
+    appId: "AI-ID",
+    noApps: "Inga AI-tillämpningar hittades",
     riskCategory: "Riskkategori",
     highRiskArea: "Högriskområde",
     fria: "FRIA",
     friaCompleted: "FRIA genomförd",
+    friaDone: "Klar",
+    friaNotDone: "Ej klar",
     registrationStatus: "Registreringsstatus",
     contact: "Kontakt",
+    statuses: {
+      active: "Aktiv",
+      draft: "Utkast",
+      suspended: "Pausad",
+      retired: "Avvecklad",
+    } as Record<string, string>,
     riskCategories: {
       high_risk: "Hög risk",
       limited_risk: "Begränsad risk",
       minimal_risk: "Minimal risk",
+    } as Record<string, string>,
+    // Observed values only; unlisted ones fall back to their raw value.
+    registrationStatuses: {
+      not_required: "Krävs ej",
+      pending: "Väntar",
+    } as Record<string, string>,
+    highRiskAreas: {
+      essential_services: "Samhällsviktiga tjänster",
     } as Record<string, string>,
   },
 
   // Processes
   processes: {
     title: "Verksamhetsprocesser",
-    infoText: "Koppla system till verksamhetsprocesser via KLASSA 2.1-klassificeringsstrukturen. Används även för att koppla informationsmängder till system.",
-    klassaNote: "KLASSA 2.1-hierarkin (verksamhetstyper, verksamhetsområden, processgrupper, processer) är implementerad i backend men processkopplingar per system är under utveckling.",
+    infoText:
+      "Koppla system till verksamhetsprocesser via KLASSA 2.1-klassificeringsstrukturen. Används även för att koppla informationsmängder till system.",
+    klassaNote:
+      "KLASSA 2.1-hierarkin (verksamhetstyper, verksamhetsområden, processgrupper, processer) är implementerad i backend men processkopplingar per system är under utveckling.",
     ownerOrg: "Ägande organisation",
   },
 
   // Continuity
   continuity: {
     title: "Kontinuitet & Återställning",
-    infoText: "Översikt av verksamhetskritiska och samhällsviktiga system baserat på K/R/T-klassning. System med nivå 4 på någon dimension bedöms som verksamhetskritiska.",
+    infoText:
+      "Översikt av verksamhetskritiska och samhällsviktiga system baserat på K/R/T-klassning. System med nivå 4 på någon dimension bedöms som verksamhetskritiska.",
     businessCritical: "Verksamhetskritiskt",
     societalCritical: "Samhällsviktigt",
   },
@@ -182,31 +253,38 @@ const sv = {
   // Reports
   reports: {
     title: "Rapporter",
-    infoText: "Generera sammanställningar för utskrift eller export. Kan användas som underlag vid driftavbrott.",
+    infoText:
+      "Generera sammanställningar för utskrift eller export. Kan användas som underlag vid driftavbrott.",
     print: "Skriv ut",
     export: "Exportera",
     systemOverview: "Systemöversikt",
-    systemOverviewDesc: (count: number) => `Sammanställning av ${count} system med status, ägare och klassning.`,
+    systemOverviewDesc: (count: number) =>
+      `Sammanställning av ${count} system med status, ägare och klassning.`,
     krtReport: "Informationssäkerhetsklass (K/R/T)",
-    krtReportDesc: "Alla systems konfidentialitet, riktighet och tillgänglighet.",
+    krtReportDesc:
+      "Alla systems konfidentialitet, riktighet och tillgänglighet.",
     supplierReport: "Leverantörsrapport",
     supplierReportDesc: "Översikt av leverantörer, avtal och kontaktuppgifter.",
     riskReport: "Riskanalys-sammanställning",
     riskReportDesc: "Öppna risker med sannolikhet, konsekvens och ansvariga.",
     continuityReport: "Kontinuitetsplan",
-    continuityReportDesc: "Utskrivbar kontinuitetsplan för verksamhetskritiska system.",
+    continuityReportDesc:
+      "Utskrivbar kontinuitetsplan för verksamhetskritiska system.",
     gdprReport: "GDPR-behandlingar",
-    gdprReportDesc: (count: number) => `${count} personuppgiftsbehandlingar med laglig grund och systemkopplingar.`,
+    gdprReportDesc: (count: number) =>
+      `${count} personuppgiftsbehandlingar med laglig grund och systemkopplingar.`,
     aiReport: "AI-tillämpningar",
-    aiReportDesc: (count: number) => `${count} AI-applikationer med riskklassificering.`,
+    aiReportDesc: (count: number) =>
+      `${count} AI-applikationer med riskklassificering.`,
   },
 
   // Notifications
   notifications: {
     title: "Notifieringar",
     markAllRead: "Markera alla som lästa",
-    infoText: "Påminnelser för avtalsförnyelser och behörighetskontroller, varningar för risker och saknade åtgärder.",
-    newCount: (n: number) => `${n} nya`,
+    infoText:
+      "Påminnelser för avtalsförnyelser och behörighetskontroller, varningar för risker och saknade åtgärder.",
+    unreadCount: (n: number) => `${n} olästa`,
   },
 
   // Admin

@@ -1,91 +1,197 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Typography, Box, Paper, Table, TableHead, TableRow, TableCell, TableBody,
-  Chip, IconButton, Button, Alert,
-} from "@mui/material";
-import { Description, Visibility, Add } from "@mui/icons-material";
+import { Button, Label, Table } from "@sk-web-gui/react";
+import { Plus, Eye } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import ViewDialog from "@/components/ViewDialog";
+import EnumLabel from "@/components/EnumLabel";
 import { useAuth } from "@/lib/auth";
 import { get } from "@/lib/api";
 import type { PPB } from "@/lib/api";
+import { GDPR_STATUS, metaFor } from "@/lib/enums";
 import t from "@/lib/i18n";
 
-const LEGAL_BASIS_LABELS = t.gdpr.legalBases;
+const legalBasisLabel = (value?: string) =>
+  value ? (t.gdpr.legalBases[value.toLowerCase()] ?? value) : t.emptyValue;
+
+const statusLabel = (value?: string) =>
+  value ? metaFor(GDPR_STATUS, value).label : t.emptyValue;
+
+const yesNo = (value?: boolean) => (value ? t.yes : t.no);
 
 export default function GdprPage() {
   const { auth } = useAuth();
-  const [behandlingar, setBehandlingar] = useState<PPB[]>([]);
+  const [treatments, setTreatments] = useState<PPB[]>([]);
   const [selected, setSelected] = useState<PPB | null>(null);
 
   useEffect(() => {
     if (!auth) return;
-    get<PPB[]>("/gdpr", auth.token).then(setBehandlingar).catch(() => {});
+    get<PPB[]>("/gdpr", auth.token)
+      .then(setTreatments)
+      .catch(() => {});
   }, [auth]);
 
   const canEdit = auth?.role === "admin" || auth?.role === "editor";
 
   return (
     <AppShell>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Description color="primary" />
-          <Typography variant="h4">{t.gdpr.title}</Typography>
-        </Box>
-        {canEdit && <Button variant="contained" startIcon={<Add />}>{t.gdpr.newTreatment}</Button>}
-      </Box>
+      <div className="flex xs:flex-col sm:flex-row xs:items-start sm:items-center justify-between mb-24">
+        <h1 className="text-h2">{t.gdpr.title}</h1>
+        {canEdit && (
+          <Button variant="primary" leftIcon={<Plus />}>
+            {t.gdpr.newTreatment}
+          </Button>
+        )}
+      </div>
 
-      <Alert severity="info" sx={{ mb: 3 }}>
-        {t.gdpr.infoText}
-      </Alert>
+      <p className="mb-24">{t.gdpr.infoText}</p>
 
-      <Paper>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>{t.gdpr.treatmentId}</TableCell><TableCell>Namn</TableCell><TableCell>Status</TableCell>
-              <TableCell>{t.gdpr.legalBasis}</TableCell><TableCell>{t.gdpr.sensitiveData}</TableCell><TableCell>{t.gdpr.ssn}</TableCell>
-              <TableCell>{t.gdpr.controller}</TableCell><TableCell>System</TableCell><TableCell align="right">{t.actions}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {behandlingar.map((b) => (
-              <TableRow key={b.id} hover>
-                <TableCell><Chip label={b.behandlingId} size="small" variant="outlined" /></TableCell>
-                <TableCell>{b.name}</TableCell>
-                <TableCell><Chip label={b.status} size="small" color={b.status === "active" ? "success" : "default"} /></TableCell>
-                <TableCell>{b.legalBasis ? LEGAL_BASIS_LABELS[b.legalBasis] ?? b.legalBasis : "-"}</TableCell>
-                <TableCell><Chip label={b.processesSensitiveData ? "Ja" : "Nej"} size="small" color={b.processesSensitiveData ? "error" : "default"} /></TableCell>
-                <TableCell><Chip label={b.processesSsn ? "Ja" : "Nej"} size="small" color={b.processesSsn ? "warning" : "default"} /></TableCell>
-                <TableCell>{b.controller?.name ?? "-"}</TableCell>
-                <TableCell>{(b.SystemModels ?? []).map((s) => <Chip key={s.id} label={s.systemId} size="small" sx={{ mr: 0.5 }} />)}</TableCell>
-                <TableCell align="right">
-                  <IconButton size="small" onClick={() => setSelected(b)}><Visibility /></IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Paper>
+      <Table background scrollable="x">
+        <Table.Header>
+          <Table.HeaderColumn>{t.gdpr.treatmentId}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.name}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.status}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.gdpr.legalBasis}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.gdpr.sensitiveData}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.gdpr.ssn}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.gdpr.controller}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.system}</Table.HeaderColumn>
+          <Table.HeaderColumn className="justify-end" sticky={true}>
+            {t.actions}
+          </Table.HeaderColumn>
+        </Table.Header>
+        <Table.Body>
+          {treatments.map((treatment) => (
+            <Table.Row key={treatment.behandlingId}>
+              <Table.Column>
+                <Label color="tertiary" className="whitespace-nowrap">
+                  {treatment.behandlingId}
+                </Label>
+              </Table.Column>
+              <Table.Column>{treatment.name}</Table.Column>
+              <Table.Column>
+                <EnumLabel value={treatment.status} map={GDPR_STATUS} />
+              </Table.Column>
+              <Table.Column>
+                {legalBasisLabel(treatment.legalBasis)}
+              </Table.Column>
+              <Table.Column>
+                <Label
+                  color={
+                    treatment.processesSensitiveData ? "error" : "tertiary"
+                  }
+                >
+                  {yesNo(treatment.processesSensitiveData)}
+                </Label>
+              </Table.Column>
+              <Table.Column>
+                <Label color={treatment.processesSsn ? "warning" : "tertiary"}>
+                  {yesNo(treatment.processesSsn)}
+                </Label>
+              </Table.Column>
+              <Table.Column>
+                {treatment.controller?.name ?? t.emptyValue}
+              </Table.Column>
+              <Table.Column>
+                {treatment.SystemModels?.length ? (
+                  <div className="inline-flex flex-wrap gap-4">
+                    {treatment.SystemModels.map((s) => (
+                      <Label
+                        key={s.id}
+                        color="tertiary"
+                        className="whitespace-nowrap"
+                      >
+                        {s.systemId}
+                      </Label>
+                    ))}
+                  </div>
+                ) : (
+                  t.emptyValue
+                )}
+              </Table.Column>
+              <Table.Column className="justify-end" sticky={true}>
+                <Button
+                  iconButton
+                  size="sm"
+                  variant="tertiary"
+                  aria-label={t.a11y.view(treatment.name)}
+                  onClick={() => setSelected(treatment)}
+                >
+                  <Eye />
+                </Button>
+              </Table.Column>
+            </Table.Row>
+          ))}
+          {treatments.length === 0 && (
+            <Table.Row>
+              <Table.Column colSpan={9} className="justify-center py-32">
+                {t.gdpr.noTreatments}
+              </Table.Column>
+            </Table.Row>
+          )}
+        </Table.Body>
+      </Table>
 
-      <ViewDialog open={!!selected} title={selected?.name ?? ""} onClose={() => setSelected(null)}>
-        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
-          <Typography variant="body2"><strong>{t.gdpr.treatmentId}:</strong> {selected?.behandlingId}</Typography>
-          <Typography variant="body2"><strong>Status:</strong> {selected?.status}</Typography>
-          <Typography variant="body2"><strong>{t.gdpr.legalBasis}:</strong> {selected?.legalBasis ? LEGAL_BASIS_LABELS[selected.legalBasis] ?? selected.legalBasis : "-"}</Typography>
-          <Typography variant="body2"><strong>{t.gdpr.controller}:</strong> {selected?.controller?.name ?? "-"}</Typography>
-          <Typography variant="body2"><strong>{t.gdpr.dpo}:</strong> {selected?.dpo ? `${selected.dpo.firstName} ${selected.dpo.lastName}` : "-"}</Typography>
-          <Typography variant="body2"><strong>{t.gdpr.dpiaRequired}:</strong> {selected?.dpiaRequired ? "Ja" : "Nej"}</Typography>
-          <Typography variant="body2"><strong>Känsliga uppgifter:</strong> {selected?.processesSensitiveData ? "Ja" : "Nej"}</Typography>
-          <Typography variant="body2"><strong>{t.gdpr.thirdCountryTransfer}:</strong> {selected?.transfersToThirdCountry ? "Ja" : "Nej"}</Typography>
-        </Box>
-        <Typography variant="body2" sx={{ mt: 2 }}><strong>{t.gdpr.purpose}:</strong> {selected?.purposeDescription ?? "-"}</Typography>
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle2">{t.gdpr.linkedSystems}</Typography>
-          {(selected?.SystemModels ?? []).map((s) => <Chip key={s.id} label={`${s.systemId} - ${s.name}`} sx={{ mr: 1, mt: 0.5 }} />)}
-        </Box>
+      <ViewDialog
+        open={!!selected}
+        title={selected?.name ?? ""}
+        onClose={() => setSelected(null)}
+        maxWidth="md"
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+          <p className="text-small">
+            <strong>{t.gdpr.treatmentId}:</strong>{" "}
+            {selected?.behandlingId ?? t.emptyValue}
+          </p>
+          <p className="text-small">
+            <strong>{t.status}:</strong> {statusLabel(selected?.status)}
+          </p>
+          <p className="text-small">
+            <strong>{t.gdpr.legalBasis}:</strong>{" "}
+            {legalBasisLabel(selected?.legalBasis)}
+          </p>
+          <p className="text-small">
+            <strong>{t.gdpr.controller}:</strong>{" "}
+            {selected?.controller?.name ?? t.emptyValue}
+          </p>
+          <p className="text-small">
+            <strong>{t.gdpr.dpo}:</strong>{" "}
+            {selected?.dpo
+              ? `${selected.dpo.firstName} ${selected.dpo.lastName}`
+              : t.emptyValue}
+          </p>
+          <p className="text-small">
+            <strong>{t.gdpr.dpiaRequired}:</strong>{" "}
+            {yesNo(selected?.dpiaRequired)}
+          </p>
+          <p className="text-small">
+            <strong>{t.gdpr.sensitiveData}:</strong>{" "}
+            {yesNo(selected?.processesSensitiveData)}
+          </p>
+          <p className="text-small">
+            <strong>{t.gdpr.thirdCountryTransfer}:</strong>{" "}
+            {yesNo(selected?.transfersToThirdCountry)}
+          </p>
+        </div>
+        <p className="text-small mt-16">
+          <strong>{t.gdpr.purpose}:</strong>{" "}
+          {selected?.purposeDescription ?? t.emptyValue}
+        </p>
+        <div className="mt-16">
+          <p className="text-small font-bold mb-8">{t.gdpr.linkedSystems}</p>
+          {selected?.SystemModels?.length ? (
+            <div className="flex flex-wrap gap-4">
+              {selected.SystemModels.map((s) => (
+                <Label key={s.id} color="tertiary">
+                  {s.systemId} — {s.name}
+                </Label>
+              ))}
+            </div>
+          ) : (
+            <p className="text-small">{t.emptyValue}</p>
+          )}
+        </div>
       </ViewDialog>
     </AppShell>
   );

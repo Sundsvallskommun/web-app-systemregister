@@ -1,36 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Typography,
-  Box,
-  Paper,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Chip,
-  Alert,
-  Tooltip,
-} from "@mui/material";
-import { Security } from "@mui/icons-material";
+import { Label, Table } from "@sk-web-gui/react";
 import AppShell from "@/components/AppShell";
 import { KrtChip } from "@/components/KrtDisplay";
 import { useAuth } from "@/lib/auth";
 import { get } from "@/lib/api";
 import type { System, PaginatedResponse } from "@/lib/api";
+import { KRT_LEVEL_COLOR, type SemanticColor } from "@/lib/enums";
 import t from "@/lib/i18n";
 
 function classLevel(
   k: number,
   r: number,
-  t_: number
-): { label: string; color: "error" | "warning" | "info" | "success" } {
+  t_: number,
+): { label: string; color: SemanticColor } {
   const max = Math.max(k, r, t_);
   if (max >= 4) return { label: t.krt.levels.critical, color: "error" };
   if (max >= 3) return { label: t.krt.levels.high, color: "warning" };
-  if (max >= 2) return { label: "Medium", color: "info" };
+  if (max >= 2) return { label: t.krt.levels.medium, color: "info" };
   return { label: t.krt.levels.low, color: "success" };
 }
 
@@ -47,91 +35,83 @@ export default function ClassificationsPage() {
 
   return (
     <AppShell>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
-        <Security color='primary' />
-        <Typography variant='h4'>{t.krt.title}</Typography>
-      </Box>
+      <h1 className="text-h2 mb-24">{t.krt.title}</h1>
 
-      <Alert severity='info' sx={{ mb: 3 }}>
-        {t.krt.infoText}
-      </Alert>
+      <p className="mb-24">{t.krt.infoText}</p>
 
-      <Paper>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>System-ID</TableCell>
-              <TableCell>Namn</TableCell>
-              <TableCell>{t.owner}</TableCell>
-              <TableCell align='center'>
-                <Tooltip title='Konfidentialitet'>
-                  <span>K</span>
-                </Tooltip>
-              </TableCell>
-              <TableCell align='center'>
-                <Tooltip title='Riktighet'>
-                  <span>R</span>
-                </Tooltip>
-              </TableCell>
-              <TableCell align='center'>
-                <Tooltip title='Tillgänglighet'>
-                  <span>T</span>
-                </Tooltip>
-              </TableCell>
-              <TableCell>{t.krt.assessment}</TableCell>
-              <TableCell>Kritikalitet</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {systems.map((sys) => {
-              const cl = classLevel(
-                sys.konfidentialitet,
-                sys.riktighet,
-                sys.tillganglighet
-              );
-              return (
-                <TableRow key={sys.id} hover>
-                  <TableCell>
-                    <Chip
-                      label={sys.systemId}
-                      size='small'
-                      variant='outlined'
-                    />
-                  </TableCell>
-                  <TableCell>{sys.name}</TableCell>
-                  <TableCell>{sys.ownerOrg?.name ?? "-"}</TableCell>
-                  <TableCell align='center'>
-                    <KrtChip value={sys.konfidentialitet} />
-                  </TableCell>
-                  <TableCell align='center'>
-                    <KrtChip value={sys.riktighet} />
-                  </TableCell>
-                  <TableCell align='center'>
-                    <KrtChip value={sys.tillganglighet} />
-                  </TableCell>
-                  <TableCell>
-                    <Chip label={cl.label} size='small' color={cl.color} />
-                  </TableCell>
-                  <TableCell>
-                    {sys.CriticalityLevel ? (
-                      <Chip
-                        label={sys.CriticalityLevel.name}
-                        size='small'
-                        sx={{
-                          bgcolor: sys.CriticalityLevel.color,
-                          color: "white",
-                        }}
-                      />
-                    ) : (
-                      "-"
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </Paper>
+      <Table background scrollable="x">
+        <Table.Header>
+          <Table.HeaderColumn>{t.systems.systemId}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.name}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.owner}</Table.HeaderColumn>
+          <Table.HeaderColumn className="justify-center">
+            <span title={t.krt.confidentiality}>{t.krt.short.k}</span>
+          </Table.HeaderColumn>
+          <Table.HeaderColumn className="justify-center">
+            <span title={t.krt.integrity}>{t.krt.short.r}</span>
+          </Table.HeaderColumn>
+          <Table.HeaderColumn className="justify-center">
+            <span title={t.krt.availability}>{t.krt.short.t}</span>
+          </Table.HeaderColumn>
+          <Table.HeaderColumn>{t.krt.assessment}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.systems.criticality}</Table.HeaderColumn>
+        </Table.Header>
+        <Table.Body>
+          {systems.map((sys) => {
+            const cl = classLevel(
+              sys.konfidentialitet,
+              sys.riktighet,
+              sys.tillganglighet,
+            );
+            return (
+              <Table.Row key={sys.id}>
+                <Table.Column>
+                  <Label color="tertiary" className="whitespace-nowrap">
+                    {sys.systemId}
+                  </Label>
+                </Table.Column>
+                <Table.Column>{sys.name}</Table.Column>
+                <Table.Column>
+                  {sys.ownerOrg?.name ?? t.emptyValue}
+                </Table.Column>
+                <Table.Column className="justify-center">
+                  <KrtChip value={sys.konfidentialitet} />
+                </Table.Column>
+                <Table.Column className="justify-center">
+                  <KrtChip value={sys.riktighet} />
+                </Table.Column>
+                <Table.Column className="justify-center">
+                  <KrtChip value={sys.tillganglighet} />
+                </Table.Column>
+                <Table.Column>
+                  <Label color={cl.color}>{cl.label}</Label>
+                </Table.Column>
+                <Table.Column>
+                  {sys.CriticalityLevel ? (
+                    <Label
+                      color={
+                        KRT_LEVEL_COLOR[sys.CriticalityLevel.level] ??
+                        "tertiary"
+                      }
+                    >
+                      {sys.CriticalityLevel.name}
+                    </Label>
+                  ) : (
+                    t.emptyValue
+                  )}
+                </Table.Column>
+              </Table.Row>
+            );
+          })}
+          {systems.length === 0 && (
+            <Table.Row>
+              <Table.Column colSpan={8} className="justify-center py-32">
+                {t.systems.noSystems}
+              </Table.Column>
+            </Table.Row>
+          )}
+        </Table.Body>
+      </Table>
     </AppShell>
   );
 }

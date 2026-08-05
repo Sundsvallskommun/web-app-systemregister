@@ -5,7 +5,7 @@ Backend-for-Frontend in Node/Express and a Next.js frontend.
 ```
 web-app-systemregister/
 ├── backend/             # Express BFF — JWT auth, proxies to api-service
-├── frontend/            # Next.js 16 + MUI — UI
+├── frontend/            # Next.js 16 — UI
 └── docker-compose.yml   # api-service + MariaDB (dev infra)
 ```
 
@@ -30,7 +30,7 @@ The actual data API (`api-service-systemregister`, Java/Spring Boot + MariaDB) l
                 │ HTTP (REST)
                 │
    ┌────────────┴────────────┐
-   │  frontend               │   Next.js 16 + MUI
+   │  frontend               │   Next.js 16
    │                         │   yarn dev — host:3000
    └─────────────────────────┘
 ```
@@ -103,11 +103,11 @@ MARIADB_ROOT_PASSWORD=change-me-root
 
 The BFF uses JWT with username/password. Three seed users are defined; their passwords are read from env vars at startup:
 
-| Username | Env var                 | Default in dev    | Role   |
-| -------- | ----------------------- | ----------------- | ------ |
-| `admin`  | `SEED_ADMIN_PASSWORD`   | `dev-admin-only`  | admin  |
-| `editor` | `SEED_EDITOR_PASSWORD`  | `dev-editor-only` | editor |
-| `viewer` | `SEED_VIEWER_PASSWORD`  | `dev-viewer-only` | viewer |
+| Username | Env var                | Default in dev    | Role   |
+| -------- | ---------------------- | ----------------- | ------ |
+| `admin`  | `SEED_ADMIN_PASSWORD`  | `dev-admin-only`  | admin  |
+| `editor` | `SEED_EDITOR_PASSWORD` | `dev-editor-only` | editor |
+| `viewer` | `SEED_VIEWER_PASSWORD` | `dev-viewer-only` | viewer |
 
 > When `NODE_ENV=production` the BFF refuses to start unless all three `SEED_*_PASSWORD` env vars are set explicitly. The dev defaults are intentionally obvious placeholders — change them locally if you want.
 

@@ -1,42 +1,25 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import {
-  Typography,
-  Box,
-  Paper,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Chip,
-  IconButton,
-  TextField,
-  InputAdornment,
-  Button,
-} from "@mui/material";
-import { Search, Add, Edit, Visibility } from "@mui/icons-material";
+import { Button, Label, SearchField, Table } from "@sk-web-gui/react";
+import { Plus, Eye, Pencil } from "lucide-react";
 import AppShell from "@/components/AppShell";
+import EnumLabel from "@/components/EnumLabel";
 import { KrtChip } from "@/components/KrtDisplay";
 import ViewDialog from "@/components/ViewDialog";
 import SystemFormDialog from "@/components/SystemFormDialog";
 import { useAuth } from "@/lib/auth";
 import { useRisks } from "@/lib/riskStore";
+import {
+  SYSTEM_STATUS,
+  HOSTING_TYPE,
+  RISK_LEVEL,
+  RISK_STATUS,
+  metaFor,
+} from "@/lib/enums";
 import { get } from "@/lib/api";
 import type { System, PaginatedResponse } from "@/lib/api";
 import t from "@/lib/i18n";
-
-const STATUS_COLORS: Record<
-  string,
-  "success" | "warning" | "error" | "default" | "info"
-> = {
-  production: "success",
-  development: "info",
-  planned: "warning",
-  deprecated: "error",
-  retired: "default",
-};
 
 export default function SystemsPage() {
   const { auth } = useAuth();
@@ -45,7 +28,7 @@ export default function SystemsPage() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<System | null>(null);
   const [dialogMode, setDialogMode] = useState<"closed" | "create" | "edit">(
-    "closed"
+    "closed",
   );
   const [dialogSystem, setDialogSystem] = useState<System | null>(null);
 
@@ -65,219 +48,231 @@ export default function SystemsPage() {
   const filtered = systems.filter(
     (s) =>
       s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.systemId.toLowerCase().includes(search.toLowerCase())
+      s.systemId.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
     <AppShell>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
-      >
-        <Typography variant='h4'>System</Typography>
+      <div className="flex xs:flex-col sm:flex-row xs:items-start sm:items-center justify-between mb-24">
+        <h1 className="text-h2">{t.systems.title}</h1>
         {canEdit && (
           <Button
-            variant='contained'
-            startIcon={<Add />}
+            variant="primary"
+            leftIcon={<Plus />}
             onClick={() => {
               setDialogSystem(null);
               setDialogMode("create");
             }}
           >
-            Nytt system
+            {t.systems.newSystem}
           </Button>
         )}
-      </Box>
+      </div>
 
-      <TextField
+      <SearchField
+        className="mb-16 max-w-[30rem]"
         placeholder={t.systems.searchPlaceholder}
-        size='small'
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        sx={{ mb: 2, width: 300 }}
-        slotProps={{
-          input: {
-            startAdornment: (
-              <InputAdornment position='start'>
-                <Search />
-              </InputAdornment>
-            ),
-          },
-        }}
+        onReset={() => setSearch("")}
+        showSearchButton={false}
       />
 
-      <Paper>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>System-ID</TableCell>
-              <TableCell>Namn</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Hosting</TableCell>
-              <TableCell>{t.owner}</TableCell>
-              <TableCell align='center'>K</TableCell>
-              <TableCell align='center'>R</TableCell>
-              <TableCell align='center'>T</TableCell>
-              <TableCell>{t.systems.supplier}</TableCell>
-              <TableCell align='right'>{t.actions}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filtered.map((sys) => (
-              <TableRow key={sys.id} hover>
-                <TableCell>
-                  <Chip label={sys.systemId} size='small' variant='outlined' />
-                </TableCell>
-                <TableCell>{sys.name}</TableCell>
-                <TableCell>
-                  <Chip
-                    label={sys.status}
-                    size='small'
-                    color={STATUS_COLORS[sys.status] ?? "default"}
-                  />
-                </TableCell>
-                <TableCell>{sys.hostingType ?? "-"}</TableCell>
-                <TableCell>{sys.ownerOrg?.name ?? "-"}</TableCell>
-                <TableCell align='center'>
-                  <KrtChip value={sys.konfidentialitet} />
-                </TableCell>
-                <TableCell align='center'>
-                  <KrtChip value={sys.riktighet} />
-                </TableCell>
-                <TableCell align='center'>
-                  <KrtChip value={sys.tillganglighet} />
-                </TableCell>
-                <TableCell>{sys.Supplier?.name ?? "-"}</TableCell>
-                <TableCell align='right'>
-                  <IconButton size='small' onClick={() => setSelected(sys)}>
-                    <Visibility />
-                  </IconButton>
+      <Table background scrollable="x">
+        <Table.Header>
+          <Table.HeaderColumn>{t.systems.systemId}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.name}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.status}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.systems.hosting}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.owner}</Table.HeaderColumn>
+          <Table.HeaderColumn className="justify-center">
+            {t.krt.short.k}
+          </Table.HeaderColumn>
+          <Table.HeaderColumn className="justify-center">
+            {t.krt.short.r}
+          </Table.HeaderColumn>
+          <Table.HeaderColumn className="justify-center">
+            {t.krt.short.t}
+          </Table.HeaderColumn>
+          <Table.HeaderColumn>{t.systems.supplier}</Table.HeaderColumn>
+          <Table.HeaderColumn className="justify-end" sticky={true}>
+            {t.actions}
+          </Table.HeaderColumn>
+        </Table.Header>
+        <Table.Body>
+          {filtered.map((sys) => (
+            <Table.Row key={sys.id}>
+              <Table.Column>
+                <Label color="tertiary" className="whitespace-nowrap">
+                  {sys.systemId}
+                </Label>
+              </Table.Column>
+              <Table.Column>{sys.name}</Table.Column>
+              <Table.Column>
+                <EnumLabel value={sys.status} map={SYSTEM_STATUS} />
+              </Table.Column>
+              <Table.Column>
+                {sys.hostingType
+                  ? metaFor(HOSTING_TYPE, sys.hostingType).label
+                  : t.emptyValue}
+              </Table.Column>
+              <Table.Column>{sys.ownerOrg?.name ?? t.emptyValue}</Table.Column>
+              <Table.Column className="justify-center">
+                <KrtChip value={sys.konfidentialitet} />
+              </Table.Column>
+              <Table.Column className="justify-center">
+                <KrtChip value={sys.riktighet} />
+              </Table.Column>
+              <Table.Column className="justify-center">
+                <KrtChip value={sys.tillganglighet} />
+              </Table.Column>
+              <Table.Column>{sys.Supplier?.name ?? t.emptyValue}</Table.Column>
+              <Table.Column className="justify-end" sticky={true}>
+                <div className="inline-flex gap-4">
+                  <Button
+                    iconButton
+                    size="sm"
+                    variant="tertiary"
+                    aria-label={t.a11y.view(sys.name)}
+                    onClick={() => setSelected(sys)}
+                  >
+                    <Eye />
+                  </Button>
                   {canEdit && (
-                    <IconButton
-                      size='small'
+                    <Button
+                      iconButton
+                      size="sm"
+                      variant="tertiary"
+                      aria-label={t.a11y.edit(sys.name)}
                       onClick={() => {
                         setDialogSystem(sys);
                         setDialogMode("edit");
                       }}
                     >
-                      <Edit />
-                    </IconButton>
+                      <Pencil />
+                    </Button>
                   )}
-                </TableCell>
-              </TableRow>
-            ))}
-            {filtered.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={10} align='center' sx={{ py: 4 }}>
-                  Inga system hittades
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </Paper>
+                </div>
+              </Table.Column>
+            </Table.Row>
+          ))}
+          {filtered.length === 0 && (
+            <Table.Row>
+              <Table.Column colSpan={10} className="justify-center py-32">
+                {t.systems.noSystems}
+              </Table.Column>
+            </Table.Row>
+          )}
+        </Table.Body>
+      </Table>
 
       <ViewDialog
         open={!!selected}
         title={selected?.name ?? ""}
         onClose={() => setSelected(null)}
       >
-        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
-          <Typography variant='body2'>
-            <strong>System-ID:</strong> {selected?.systemId}
-          </Typography>
-          <Typography variant='body2'>
-            <strong>Status:</strong> {selected?.status}
-          </Typography>
-          <Typography variant='body2'>
-            <strong>Version:</strong> {selected?.version ?? "-"}
-          </Typography>
-          <Typography variant='body2'>
-            <strong>Hosting:</strong> {selected?.hostingType ?? "-"}
-          </Typography>
-          <Typography variant='body2'>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-16">
+          <p className="text-small">
+            <strong>{t.systems.systemId}:</strong> {selected?.systemId}
+          </p>
+          <p className="text-small">
+            <strong>{t.status}:</strong>{" "}
+            {selected
+              ? metaFor(SYSTEM_STATUS, selected.status).label
+              : t.emptyValue}
+          </p>
+          <p className="text-small">
+            <strong>{t.version}:</strong> {selected?.version ?? t.emptyValue}
+          </p>
+          <p className="text-small">
+            <strong>{t.systems.hosting}:</strong>{" "}
+            {selected?.hostingType
+              ? metaFor(HOSTING_TYPE, selected.hostingType).label
+              : t.emptyValue}
+          </p>
+          <p className="text-small">
             <strong>{t.systems.ownerOrg}:</strong>{" "}
-            {selected?.ownerOrg?.name ?? "-"}
-          </Typography>
-          <Typography variant='body2'>
+            {selected?.ownerOrg?.name ?? t.emptyValue}
+          </p>
+          <p className="text-small">
             <strong>{t.systems.systemOwner}:</strong>{" "}
             {selected?.systemOwner
               ? `${selected.systemOwner.firstName} ${selected.systemOwner.lastName}`
-              : "-"}
-          </Typography>
-          <Typography variant='body2'>
-            <strong>Teknisk kontakt:</strong>{" "}
+              : t.emptyValue}
+          </p>
+          <p className="text-small">
+            <strong>{t.systems.technicalContact}:</strong>{" "}
             {selected?.technicalContact
               ? `${selected.technicalContact.firstName} ${selected.technicalContact.lastName}`
-              : "-"}
-          </Typography>
-          <Typography variant='body2'>
+              : t.emptyValue}
+          </p>
+          <p className="text-small">
             <strong>{t.systems.supplier}:</strong>{" "}
-            {selected?.Supplier?.name ?? "-"}
-          </Typography>
-          <Typography variant='body2'>
-            <strong>Kritikalitet:</strong>{" "}
-            {selected?.CriticalityLevel?.name ?? "-"}
-          </Typography>
-        </Box>
-        <Typography variant='body2' sx={{ mt: 2 }}>
-          <strong>Beskrivning:</strong> {selected?.description ?? "-"}
-        </Typography>
-        <Box sx={{ mt: 2 }}>
-          <Typography variant='subtitle2' gutterBottom>
-            Infosäkerhetsklass (K/R/T)
-          </Typography>
-          <Box sx={{ display: "flex", gap: 3 }}>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              <Typography variant='caption'>Konfidentialitet</Typography>
+            {selected?.Supplier?.name ?? t.emptyValue}
+          </p>
+          <p className="text-small">
+            <strong>{t.systems.criticality}:</strong>{" "}
+            {selected?.CriticalityLevel?.name ?? t.emptyValue}
+          </p>
+        </div>
+        <p className="text-small mt-16">
+          <strong>{t.description}:</strong>{" "}
+          {selected?.description ?? t.emptyValue}
+        </p>
+        <div className="mt-16">
+          <p className="text-small font-bold mb-8">{t.krt.title}</p>
+          <div className="flex flex-wrap gap-8">
+            <div className="flex flex-col gap-4 w-[10rem]">
+              <span className="text-small">{t.krt.confidentiality}</span>
               <KrtChip value={selected?.konfidentialitet ?? 0} />
-            </Box>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              <Typography variant='caption'>Riktighet</Typography>
+            </div>
+            <div className="flex flex-col gap-4 w-[10rem]">
+              <span className="text-small">{t.krt.integrity}</span>
               <KrtChip value={selected?.riktighet ?? 0} />
-            </Box>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              <Typography variant='caption'>Tillgänglighet</Typography>
+            </div>
+            <div className="flex flex-col gap-4 w-[10rem]">
+              <span className="text-small">{t.krt.availability}</span>
               <KrtChip value={selected?.tillganglighet ?? 0} />
-            </Box>
-          </Box>
-        </Box>
+            </div>
+          </div>
+        </div>
         {(() => {
-          const systemRisks = selected ? risks.filter((r) => r.system === selected.systemId) : [];
+          const systemRisks = selected
+            ? risks.filter((r) => r.system === selected.systemId)
+            : [];
           if (systemRisks.length === 0) return null;
-          const RISK_COLORS: Record<string, "error" | "warning" | "info" | "success"> = {
-            critical: "error", high: "warning", medium: "info", low: "success",
-          };
           return (
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="subtitle2" gutterBottom>{t.risks.title} ({systemRisks.length})</Typography>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Risk</TableCell>
-                    <TableCell>{t.risks.probability}</TableCell>
-                    <TableCell>{t.risks.impact}</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>{t.risks.responsible}</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
+            <div className="mt-24">
+              <p className="text-small font-bold mb-8">
+                {t.risks.title} ({systemRisks.length})
+              </p>
+              <Table background dense scrollable="x">
+                <Table.Header>
+                  <Table.HeaderColumn>{t.risks.risk}</Table.HeaderColumn>
+                  <Table.HeaderColumn>{t.risks.probability}</Table.HeaderColumn>
+                  <Table.HeaderColumn>{t.risks.impact}</Table.HeaderColumn>
+                  <Table.HeaderColumn>{t.status}</Table.HeaderColumn>
+                  <Table.HeaderColumn>{t.risks.responsible}</Table.HeaderColumn>
+                </Table.Header>
+                <Table.Body>
                   {systemRisks.map((r) => (
-                    <TableRow key={r.id}>
-                      <TableCell>{r.title}</TableCell>
-                      <TableCell><Chip label={r.probability} size="small" color={RISK_COLORS[r.probability] ?? "default"} /></TableCell>
-                      <TableCell><Chip label={r.impact} size="small" color={RISK_COLORS[r.impact] ?? "default"} /></TableCell>
-                      <TableCell><Chip label={r.status} size="small" color={r.status === "open" ? "error" : "default"} /></TableCell>
-                      <TableCell>{r.owner}</TableCell>
-                    </TableRow>
+                    <Table.Row key={r.id}>
+                      <Table.Column>{r.title}</Table.Column>
+                      <Table.Column>
+                        <EnumLabel value={r.probability} map={RISK_LEVEL} />
+                      </Table.Column>
+                      <Table.Column>
+                        <EnumLabel value={r.impact} map={RISK_LEVEL} />
+                      </Table.Column>
+                      <Table.Column>
+                        <EnumLabel value={r.status} map={RISK_STATUS} />
+                      </Table.Column>
+                      <Table.Column>{r.owner}</Table.Column>
+                    </Table.Row>
                   ))}
-                </TableBody>
+                </Table.Body>
               </Table>
-            </Box>
+            </div>
           );
         })()}
       </ViewDialog>

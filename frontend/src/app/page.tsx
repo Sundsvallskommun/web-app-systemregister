@@ -2,18 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Box,
-  Card,
-  CardContent,
-  TextField,
-  Button,
-  Typography,
-  Alert,
-  InputAdornment,
-  IconButton,
-} from "@mui/material";
-import { Visibility, VisibilityOff, Lock } from "@mui/icons-material";
+import { Alert, Button, Header, Input, TextField } from "@sk-web-gui/react";
+import { Eye, EyeOff } from "lucide-react";
+import Field from "@/components/Field";
 import { login } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import t from "@/lib/i18n";
@@ -42,98 +33,68 @@ export default function LoginPage() {
       setAuth({ token: res.accessToken, role: res.role, username });
       router.push("/dashboard");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : t.loginFailed
-      );
+      setError(err instanceof Error ? err.message : t.loginFailed);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        bgcolor: "#F1F5F9",
-      }}
-    >
-      <Card sx={{ width: "100%", maxWidth: 420, mx: 2 }}>
-        <CardContent sx={{ p: 4 }}>
-          <Box sx={{ textAlign: "center", mb: 3 }}>
-            <Box
-              sx={{
-                width: 56,
-                height: 56,
-                borderRadius: "50%",
-                bgcolor: "primary.main",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                mb: 2,
-              }}
-            >
-              <Lock sx={{ color: "white", fontSize: 28 }} />
-            </Box>
-            <Typography variant='h5'>{t.app.name}</Typography>
-            <Typography variant='body2' color='text.secondary'>
-              {t.app.org}
-            </Typography>
-          </Box>
+    <div className="flex min-h-screen flex-col bg-background-content">
+      <Header title={t.app.name} />
 
+      <main className="flex grow items-center justify-center p-24">
+        <div className="w-full max-w-[38rem]">
           {error && (
-            <Alert severity='error' sx={{ mb: 2 }}>
+            <Alert type="error" size="sm" className="mb-16">
               {error}
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit}>
-            <TextField
-              label={t.username}
-              fullWidth
-              required
-              autoFocus
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label={t.password}
-              type={showPassword ? "text" : "password"}
-              fullWidth
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              sx={{ mb: 3 }}
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <InputAdornment position='end'>
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge='end'
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
+          <form onSubmit={handleSubmit} className="flex flex-col gap-16">
+            <Field label={t.username} required>
+              <TextField
+                required
+                autoFocus
+                className="w-full"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </Field>
+            <Field label={t.password} required>
+              <Input.InnerGroup className="w-full">
+                <Input
+                  required
+                  type={showPassword ? "text" : "password"}
+                  className="w-full"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <Input.RightAddin>
+                  <button
+                    type="button"
+                    aria-label={
+                      showPassword ? t.a11y.hidePassword : t.a11y.showPassword
+                    }
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff /> : <Eye />}
+                  </button>
+                </Input.RightAddin>
+              </Input.InnerGroup>
+            </Field>
             <Button
-              type='submit'
-              variant='contained'
-              fullWidth
-              size='large'
-              disabled={loading}
+              type="submit"
+              variant="primary"
+              loading={loading}
+              loadingText={t.loggingIn}
+              className="w-full"
             >
-              {loading ? t.loggingIn : t.login}
+              {t.login}
             </Button>
           </form>
-        </CardContent>
-      </Card>
-    </Box>
+        </div>
+      </main>
+    </div>
   );
 }
