@@ -3,9 +3,11 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { Application, RequestHandler, Router } from 'express';
+import session from 'express-session';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import morgan from 'morgan';
+import passport from 'passport';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
@@ -17,16 +19,23 @@ import {
   NODE_ENV,
   ORIGIN,
   PORT,
+  SECRET_KEY,
+  SESSION_TTL,
   SWAGGER_ENABLED,
 } from '@config';
 import errorMiddleware from '@middlewares/error.middleware';
 import { logger, stream } from '@utils/logger';
 
-import authController from './controllers/auth.controller';
 import healthController from './controllers/health.controller';
 import meController from './controllers/me.controller';
 import { buildProxyRouter } from './controllers/proxy.controller';
+import { buildSamlRouter } from './controllers/saml.controller';
 import systemsController from './controllers/systems.controller';
+import { createSamlStrategy } from './services/saml.service';
+import { createSessionStore } from './utils/sessionStore';
+
+/** Sessionens livslängd i sekunder — default 8 timmar (en arbetsdag). */
+const sessionTtlSeconds = Number(SESSION_TTL ?? 8 * 60 * 60);
 
 const corsWhitelist = (ORIGIN ?? '')
   .split(',')
@@ -95,6 +104,7 @@ export class App {
   public env: string;
   public port: number | string;
   public swaggerEnabled: boolean;
+  private samlStrategy = createSamlStrategy();
 
   constructor() {
     this.app = express();
@@ -151,6 +161,33 @@ export class App {
         },
       }),
     );
+
+    // Bakom reverse proxy i drift — behövs för secure cookies och korrekt IP.
+    this.app.set('trust proxy', 1);
+
+    this.app.use(
+      session({
+        secret: SECRET_KEY as string,
+        resave: false,
+        saveUninitialized: false,
+        store: createSessionStore(sessionTtlSeconds),
+        cookie: {
+          httpOnly: true,
+          maxAge: sessionTtlSeconds * 1000,
+          sameSite: 'lax',
+          secure: this.env === 'production',
+        },
+      }),
+    );
+
+    // Användarobjektet är litet och läses direkt ur sessionen — ingen
+    // användardatabas att slå upp mot, all behörighet kommer från AD-grupperna.
+    passport.serializeUser((user, done) => done(null, user));
+    passport.deserializeUser((user: Express.User, done) => done(null, user));
+
+    this.app.use(passport.initialize());
+    this.app.use(passport.session());
+    passport.use('saml', this.samlStrategy);
   }
 
   private initializeRoutes(): void {
@@ -158,7 +195,7 @@ export class App {
     const root = Router();
 
     root.use('/health', healthController);
-    root.use('/auth', authController);
+    root.use('/saml', buildSamlRouter(this.samlStrategy));
     root.use('/me', meController);
 
     // Dedikerade controllers med berikning — måste komma före proxy-loopen.
