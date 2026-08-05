@@ -1,0 +1,64 @@
+{
+  "data": [
+    {
+      "id": "sys-1",
+      "systemId": "SYS-001",
+      "name": "Raindance",
+      "description": "Ekonomisystem för kommunen.",
+      "status": "PRODUCTION",
+      "version": "12.4",
+      "hostingType": "CLOUD",
+      "konfidentialitet": 3,
+      "riktighet": 2,
+      "tillganglighet": 4,
+      "ownerOrg": { "id": "org-1", "name": "Ekonomiavdelningen" },
+      "systemOwner": {
+        "id": "p-1",
+        "firstName": "Anna",
+        "lastName": "Ek",
+        "email": "anna.ek@sundsvall.se"
+      },
+      "technicalContact": {
+        "id": "p-2",
+        "firstName": "Björn",
+        "lastName": "Sjö",
+        "email": "bjorn.sjo@sundsvall.se"
+      },
+      "Supplier": { "id": "sup-1", "name": "TechSys AB", "isActive": true },
+      "CriticalityLevel": {
+        "id": "c-4",
+        "name": "Verksamhetskritiskt",
+        "level": 4,
+        "color": "red"
+      }
+    },
+    {
+      "id": "sys-2",
+      "systemId": "SYS-002",
+      "name": "ByggR",
+      "description": "Handläggning av bygglov.",
+      "status": "DEVELOPMENT",
+      "hostingType": "INTERNAL",
+      "konfidentialitet": 4,
+      "riktighet": 3,
+      "tillganglighet": 4,
+      "ownerOrg": { "id": "org-2", "name": "Bygglovsenheten" },
+      "Supplier": { "id": "sup-2", "name": "Kommunbygg IT", "isActive": true }
+    },
+    {
+      "id": "sys-3",
+      "systemId": "SYS-003",
+      "name": "Treserva",
+      "description": "Verksamhetssystem inom vård och omsorg.",
+      "status": "PRODUCTION",
+      "hostingType": "CLOUD",
+      "konfidentialitet": 2,
+      "riktighet": 2,
+      "tillganglighet": 2,
+      "ownerOrg": { "id": "org-3", "name": "Socialtjänsten" }
+    }
+  ],
+  "total": 3,
+  "page": 1,
+  "pages": 1
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "id": "sup-1",
+    "name": "TechSys AB",
+    "description": "Leverantör av ekonomisystem.",
+    "orgNumber": "556123-4567",
+    "website": "https://techsys.example.se",
+    "contactEmail": "kontakt@techsys.example.se",
+    "isActive": true
+  },
+  {
+    "id": "sup-2",
+    "name": "Kommunbygg IT",
+    "orgNumber": "556987-6543",
+    "contactEmail": "support@kommunbygg.example.se",
+    "isActive": false
+  }
+]

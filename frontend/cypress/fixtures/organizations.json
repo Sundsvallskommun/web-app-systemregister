@@ -1,0 +1,5 @@
+[
+  { "id": "org-1", "name": "Ekonomiavdelningen" },
+  { "id": "org-2", "name": "Bygglovsenheten" },
+  { "id": "org-3", "name": "Socialtjänsten" }
+]
