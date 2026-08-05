@@ -86,7 +86,7 @@ export default function SupplierFormDialog({
         if (form.orgNumber) body.orgNumber = form.orgNumber;
         if (form.website) body.website = form.website;
         if (form.contactEmail) body.contactEmail = form.contactEmail;
-        await post("/suppliers", body, auth.token);
+        await post("/suppliers", body);
       } else if (supplier) {
         const body: Record<string, unknown> = {};
         const original = toForm(supplier);
@@ -98,7 +98,7 @@ export default function SupplierFormDialog({
           onClose();
           return;
         }
-        await patch(`/suppliers/${supplier.id}`, body, auth.token);
+        await patch(`/suppliers/${supplier.id}`, body);
       }
       onSaved();
     } catch (err) {

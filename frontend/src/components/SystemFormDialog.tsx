@@ -94,13 +94,13 @@ export default function SystemFormDialog({
 
   useEffect(() => {
     if (mode === "closed" || !auth) return;
-    get<Organization[]>("/organizations", auth.token)
+    get<Organization[]>("/organizations")
       .then(setOrgs)
       .catch(() => {});
-    get<Person[]>("/persons", auth.token)
+    get<Person[]>("/persons")
       .then(setPersons)
       .catch(() => {});
-    get<Supplier[]>("/suppliers", auth.token)
+    get<Supplier[]>("/suppliers")
       .then(setSuppliers)
       .catch(() => {});
   }, [mode, auth]);
@@ -132,7 +132,7 @@ export default function SystemFormDialog({
           if (value !== "" && value !== 0 && key !== "name" && key !== "status")
             body[key] = value;
         }
-        await post("/systems", body, auth.token);
+        await post("/systems", body);
       } else if (system) {
         const body: Record<string, unknown> = {};
         const original = systemToForm(system);
@@ -144,7 +144,7 @@ export default function SystemFormDialog({
           onClose();
           return;
         }
-        await patch(`/systems/${system.id}`, body, auth.token);
+        await patch(`/systems/${system.id}`, body);
       }
       onSaved();
     } catch (err) {

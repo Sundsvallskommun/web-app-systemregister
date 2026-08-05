@@ -17,13 +17,13 @@ export default function ReportsPage() {
 
   useEffect(() => {
     if (!auth) return;
-    get<PaginatedResponse<System>>("/systems", auth.token)
+    get<PaginatedResponse<System>>("/systems")
       .then((r) => setSystemCount(r.total ?? 0))
       .catch(() => {});
-    get<PPB[]>("/gdpr", auth.token)
+    get<PPB[]>("/gdpr")
       .then((r) => setPpbCount(r.length))
       .catch(() => {});
-    get<AiApplication[]>("/ai", auth.token)
+    get<AiApplication[]>("/ai")
       .then((r) => setAiCount(r.length))
       .catch(() => {});
   }, [auth]);

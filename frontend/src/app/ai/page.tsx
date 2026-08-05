@@ -35,7 +35,7 @@ export default function AiPage() {
 
   useEffect(() => {
     if (!auth) return;
-    get<AiApplication[]>("/ai", auth.token)
+    get<AiApplication[]>("/ai")
       .then(setApps)
       .catch(() => {});
   }, [auth]);
