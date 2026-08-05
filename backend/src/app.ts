@@ -28,7 +28,10 @@ import meController from './controllers/me.controller';
 import { buildProxyRouter } from './controllers/proxy.controller';
 import systemsController from './controllers/systems.controller';
 
-const corsWhitelist = (ORIGIN ?? '').split(',').map(s => s.trim()).filter(Boolean);
+const corsWhitelist = (ORIGIN ?? '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
 
 /**
  * Resources som proxas mot api-service-systemregister.
@@ -46,7 +49,12 @@ const RESOURCE_ENUM_FIELDS: Record<string, readonly string[]> = {
   services: ['serviceType', 'hostingType'],
   'system-service-links': ['direction'],
   'system-dependencies': ['dependencyType'],
-  personuppgiftsbehandlingar: ['status', 'legalBasis', 'sensitiveDataBasis', 'transferProtectionMechanism'],
+  personuppgiftsbehandlingar: [
+    'status',
+    'legalBasis',
+    'sensitiveDataBasis',
+    'transferProtectionMechanism',
+  ],
   'ai-applications': ['status', 'riskCategory'],
   informationshanteringsplaner: ['status'],
   foreskrifter: ['utfardare'],
@@ -61,24 +69,26 @@ const PROXIED_RESOURCES = [
   'system-service-links',
   'system-dependencies',
   'personuppgiftsbehandlingar',
-  'personuppgiftsbehandling-system-links',
   'ai-applications',
   'informationshanteringsplaner',
-  'handlingstyper',
-  'handlingstyp-ansvariga',
-  'informationsklassningar',
   'foreskrifter',
-  'klassa-verksamhetstyper',
-  'klassa-verksamhetsomraden',
-  'klassa-processgrupper',
-  'klassa-processer',
+  'klassa/verksamhetstyper',
+  'klassa/verksamhetsomraden',
+  'klassa/processgrupper',
+  'klassa/processer',
   'processer',
-  'code-lists',
   'security-level-definitions',
   'event-logs',
   'vulnerability-scans',
-  'vulnerability-findings',
 ] as const;
+
+// Kräver en dedikerad router när de tas i bruk. Faktiska rutter:
+//   personuppgiftsbehandlingar/{behandlingId}/system-links   (fd 'personuppgiftsbehandling-system-links')
+//   informationshanteringsplaner/{ihPlanId}/handlingstyper   (fd 'handlingstyper')
+//   handlingstyper/{handlingstypId}/ansvariga                (fd 'handlingstyp-ansvariga')
+//   handlingstyper/{handlingstypId}/klassning                (fd 'informationsklassningar' — fanns ej som platt resurs)
+//   vulnerability-scans/{scanId}/findings                    (fd 'vulnerability-findings')
+//   kodtabeller/{tableName}                                   (fd 'code-lists')
 
 export class App {
   public app: Application;
@@ -127,7 +137,11 @@ export class App {
       cors({
         credentials: CREDENTIALS,
         origin: (origin, callback) => {
-          if (!origin || corsWhitelist.includes('*') || corsWhitelist.includes(origin)) {
+          if (
+            !origin ||
+            corsWhitelist.includes('*') ||
+            corsWhitelist.includes(origin)
+          ) {
             return callback(null, true);
           }
           if (this.env === 'development') {
@@ -151,13 +165,28 @@ export class App {
     root.use('/systems', systemsController);
 
     for (const resource of PROXIED_RESOURCES) {
-      root.use(`/${resource}`, buildProxyRouter(resource, { enumFields: RESOURCE_ENUM_FIELDS[resource] }));
+      root.use(
+        `/${resource}`,
+        buildProxyRouter(resource, {
+          enumFields: RESOURCE_ENUM_FIELDS[resource],
+        }),
+      );
     }
 
     // Aliases för bakåtkompatibilitet med gamla systemregister-frontend.
     // Frontend ringer /gdpr och /ai, api-service heter personuppgiftsbehandlingar och ai-applications.
-    root.use('/gdpr', buildProxyRouter('personuppgiftsbehandlingar', { enumFields: RESOURCE_ENUM_FIELDS.personuppgiftsbehandlingar }));
-    root.use('/ai', buildProxyRouter('ai-applications', { enumFields: RESOURCE_ENUM_FIELDS['ai-applications'] }));
+    root.use(
+      '/gdpr',
+      buildProxyRouter('personuppgiftsbehandlingar', {
+        enumFields: RESOURCE_ENUM_FIELDS.personuppgiftsbehandlingar,
+      }),
+    );
+    root.use(
+      '/ai',
+      buildProxyRouter('ai-applications', {
+        enumFields: RESOURCE_ENUM_FIELDS['ai-applications'],
+      }),
+    );
 
     this.app.use(prefix, root);
   }
