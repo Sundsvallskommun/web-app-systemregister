@@ -76,7 +76,7 @@ export default function DashboardPage() {
           <Table.HeaderColumn>{t.name}</Table.HeaderColumn>
           <Table.HeaderColumn>{t.status}</Table.HeaderColumn>
           <Table.HeaderColumn>{t.owner}</Table.HeaderColumn>
-          <Table.HeaderColumn className="justify-center">
+          <Table.HeaderColumn className="justify-center" sticky={true}>
             {t.krt.abbr}
           </Table.HeaderColumn>
         </Table.Header>
@@ -93,7 +93,7 @@ export default function DashboardPage() {
                 <EnumLabel value={sys.status} map={SYSTEM_STATUS} />
               </Table.Column>
               <Table.Column>{sys.ownerOrg?.name ?? t.emptyValue}</Table.Column>
-              <Table.Column className="justify-center">
+              <Table.Column className="justify-center" sticky={true}>
                 <div className="inline-flex gap-4">
                   <KrtChip value={sys.konfidentialitet} />
                   <KrtChip value={sys.riktighet} />

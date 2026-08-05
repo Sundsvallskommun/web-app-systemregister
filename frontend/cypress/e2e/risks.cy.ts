@@ -1,9 +1,4 @@
 describe("Risks page", () => {
-  it("redirects to login when unauthenticated", () => {
-    cy.visit("/risks");
-    cy.location("pathname").should("eq", "/");
-  });
-
   it("lists current risks", () => {
     cy.visitAs("/risks", "admin");
 

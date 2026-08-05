@@ -57,7 +57,7 @@ export default function GdprPage() {
           <Table.HeaderColumn>{t.gdpr.ssn}</Table.HeaderColumn>
           <Table.HeaderColumn>{t.gdpr.controller}</Table.HeaderColumn>
           <Table.HeaderColumn>{t.system}</Table.HeaderColumn>
-          <Table.HeaderColumn className="justify-end">
+          <Table.HeaderColumn className="justify-end" sticky={true}>
             {t.actions}
           </Table.HeaderColumn>
         </Table.Header>
@@ -110,7 +110,7 @@ export default function GdprPage() {
                   t.emptyValue
                 )}
               </Table.Column>
-              <Table.Column className="justify-end">
+              <Table.Column className="justify-end" sticky={true}>
                 <Button
                   iconButton
                   size="sm"

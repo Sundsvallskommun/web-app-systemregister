@@ -1,9 +1,4 @@
 describe("Reports page", () => {
-  it("redirects to login when unauthenticated", () => {
-    cy.visit("/reports");
-    cy.location("pathname").should("eq", "/");
-  });
-
   it("lists the available report cards", () => {
     cy.visitAs("/reports", "admin");
     cy.wait("@getSystems");

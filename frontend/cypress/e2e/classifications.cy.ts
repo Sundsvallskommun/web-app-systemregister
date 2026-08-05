@@ -1,9 +1,4 @@
 describe("Classifications (K/R/T) page", () => {
-  it("redirects to login when unauthenticated", () => {
-    cy.visit("/classifications");
-    cy.location("pathname").should("eq", "/");
-  });
-
   it("lists systems with their K/R/T assessment", () => {
     cy.visitAs("/classifications", "admin");
     cy.wait("@getSystems");

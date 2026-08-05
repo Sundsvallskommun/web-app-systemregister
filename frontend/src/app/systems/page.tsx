@@ -95,7 +95,7 @@ export default function SystemsPage() {
             {t.krt.short.t}
           </Table.HeaderColumn>
           <Table.HeaderColumn>{t.systems.supplier}</Table.HeaderColumn>
-          <Table.HeaderColumn className="justify-end">
+          <Table.HeaderColumn className="justify-end" sticky={true}>
             {t.actions}
           </Table.HeaderColumn>
         </Table.Header>
@@ -127,7 +127,7 @@ export default function SystemsPage() {
                 <KrtChip value={sys.tillganglighet} />
               </Table.Column>
               <Table.Column>{sys.Supplier?.name ?? t.emptyValue}</Table.Column>
-              <Table.Column className="justify-end">
+              <Table.Column className="justify-end" sticky={true}>
                 <div className="inline-flex gap-4">
                   <Button
                     iconButton
