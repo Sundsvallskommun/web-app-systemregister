@@ -7,6 +7,7 @@ import AppShell from "@/components/AppShell";
 import RiskFormDialog from "@/components/RiskFormDialog";
 import EnumLabel from "@/components/EnumLabel";
 import { useAuth } from "@/lib/auth";
+import { hasEditRights } from "@/lib/permissions";
 import { useRisks } from "@/lib/riskStore";
 import { RISK_LEVEL, RISK_STATUS } from "@/lib/enums";
 import t from "@/lib/i18n";
@@ -15,7 +16,7 @@ export default function RisksPage() {
   const { auth } = useAuth();
   const { risks, setRisks } = useRisks();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const canEdit = auth?.role === "admin" || auth?.role === "editor";
+  const canEdit = hasEditRights(auth);
 
   return (
     <AppShell>

@@ -103,11 +103,13 @@ MARIADB_ROOT_PASSWORD=change-me-root
 
 The BFF uses JWT with username/password. Three seed users are defined; their passwords are read from env vars at startup:
 
-| Username | Env var                | Default in dev    | Role   |
-| -------- | ---------------------- | ----------------- | ------ |
-| `admin`  | `SEED_ADMIN_PASSWORD`  | `dev-admin-only`  | admin  |
-| `editor` | `SEED_EDITOR_PASSWORD` | `dev-editor-only` | editor |
-| `viewer` | `SEED_VIEWER_PASSWORD` | `dev-viewer-only` | viewer |
+| Username | Env var                | Default in dev    | Role   | Shown in UI as   |
+| -------- | ---------------------- | ----------------- | ------ | ---------------- |
+| `admin`  | `SEED_ADMIN_PASSWORD`  | `dev-admin-only`  | admin  | Admin            |
+| `editor` | `SEED_EDITOR_PASSWORD` | `dev-editor-only` | editor | Systemförvaltare |
+| `viewer` | `SEED_VIEWER_PASSWORD` | `dev-viewer-only` | viewer | IT-samordnare    |
+
+> The role values in code are generic (`admin`/`editor`/`viewer`); the verksamhet's names for them live as labels in `frontend/src/lib/i18n.ts` under `roles`.
 
 > When `NODE_ENV=production` the BFF refuses to start unless all three `SEED_*_PASSWORD` env vars are set explicitly. The dev defaults are intentionally obvious placeholders — change them locally if you want.
 
@@ -118,6 +120,7 @@ Endpoints:
 - `POST /api/auth/logout`
 
 Role policy in the proxy: `viewer` can read, `editor` can read + write, `admin` can also DELETE.
+Registering a new system (`POST /api/systems`) is admin-only — see `createRoles` in `backend/src/controllers/systems.controller.ts`.
 
 > The seed users live in `backend/src/services/auth.service.ts`. Switch to a `users` table in api-service, or port the SAML setup from `web-app-new-personal-files` when the time comes.
 

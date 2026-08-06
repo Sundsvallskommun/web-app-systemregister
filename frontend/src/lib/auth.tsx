@@ -1,11 +1,11 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
-import type { LoginResponse } from "./api";
+import type { UserRole } from "./api";
 
 export interface AuthState {
   token: string;
-  role: "admin" | "editor" | "viewer";
+  role: UserRole;
   username?: string;
 }
 

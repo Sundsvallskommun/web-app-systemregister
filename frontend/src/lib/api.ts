@@ -27,10 +27,12 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
 }
 
 // --- Auth ---
+export type UserRole = "admin" | "editor" | "viewer";
+
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
-  role: "admin" | "editor" | "viewer";
+  role: UserRole;
   expiresIn: number;
 }
 

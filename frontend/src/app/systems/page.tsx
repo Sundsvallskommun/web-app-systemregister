@@ -9,6 +9,7 @@ import { KrtChip } from "@/components/KrtDisplay";
 import ViewDialog from "@/components/ViewDialog";
 import SystemFormDialog from "@/components/SystemFormDialog";
 import { useAuth } from "@/lib/auth";
+import { canCreateSystem, hasEditRights } from "@/lib/permissions";
 import { useRisks } from "@/lib/riskStore";
 import {
   SYSTEM_STATUS,
@@ -43,7 +44,8 @@ export default function SystemsPage() {
     loadSystems();
   }, [loadSystems]);
 
-  const canEdit = auth?.role === "admin" || auth?.role === "editor";
+  const canEdit = hasEditRights(auth);
+  const canCreate = canCreateSystem(auth);
 
   const filtered = systems.filter(
     (s) =>
@@ -55,7 +57,7 @@ export default function SystemsPage() {
     <AppShell>
       <div className="flex xs:flex-col sm:flex-row xs:items-start sm:items-center justify-between mb-24">
         <h1 className="text-h2">{t.systems.title}</h1>
-        {canEdit && (
+        {canCreate && (
           <Button
             variant="primary"
             leftIcon={<Plus />}

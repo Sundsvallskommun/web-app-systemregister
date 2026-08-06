@@ -5,7 +5,9 @@ import { loadRefData, enrichSystem } from '@/services/enrich.service';
 import { UserRole } from '@/interfaces/user.interface';
 import { uppercaseEnumFields } from '@/utils/enumTransform';
 
+// Systemförvaltare får ändra sina system, men bara Admin får registrera nya.
 const writeRoles: UserRole[] = ['admin', 'editor'];
+const createRoles: UserRole[] = ['admin'];
 const deleteRoles: UserRole[] = ['admin'];
 
 // Java-API:s enum-värden är UPPERCASE; frontend skickar ibland lowercase.
@@ -52,7 +54,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.post('/', requireRole(...writeRoles), async (req, res, next) => {
+router.post('/', requireRole(...createRoles), async (req, res, next) => {
   try {
     const body = uppercaseEnumFields(req.body, SYSTEM_ENUM_FIELDS);
     const data = await apiService.post('systems', body);

@@ -45,17 +45,17 @@ const sv = {
     hidePassword: "Dölj lösenord",
   },
 
-  // Roles
   roles: {
     admin: "Admin",
-    editor: "Redaktör",
-    viewer: "Läsare",
+    editor: "Systemförvaltare",
+    viewer: "IT-samordnare",
   } as Record<string, string>,
 
   roleDashboards: {
-    admin: "Du har full tillgång till alla funktioner.",
-    editor: "Du kan redigera system, leverantörer och klassningar.",
-    viewer: "Du har läsbehörighet för alla register.",
+    admin:
+      "Du har full tillgång till alla funktioner och registrerar nya system.",
+    editor: "Du kan redigera de system du förvaltar.",
+    viewer: "Du har läsbehörighet för systemen i din förvaltning.",
   } as Record<string, string>,
 
   // Navigation
