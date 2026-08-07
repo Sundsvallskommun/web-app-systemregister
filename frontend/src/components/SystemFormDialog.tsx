@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Select, TextField, Textarea } from "@sk-web-gui/react";
-import { KrtSelect } from "@/components/KrtDisplay";
 import Field from "@/components/Field";
 import FormDialog from "@/components/FormDialog";
 import { useAuth } from "@/lib/auth";
@@ -21,9 +20,6 @@ interface SystemForm {
   status: string;
   version: string;
   hostingType: string;
-  konfidentialitet: number;
-  riktighet: number;
-  tillganglighet: number;
   ownerOrganizationId: string;
   systemOwnerId: string;
   technicalContactId: string;
@@ -37,9 +33,6 @@ const EMPTY_FORM: SystemForm = {
   status: "planned",
   version: "",
   hostingType: "",
-  konfidentialitet: 0,
-  riktighet: 0,
-  tillganglighet: 0,
   ownerOrganizationId: "",
   systemOwnerId: "",
   technicalContactId: "",
@@ -54,9 +47,6 @@ function systemToForm(sys: System): SystemForm {
     status: sys.status.toLowerCase(),
     version: sys.version ?? "",
     hostingType: sys.hostingType?.toLowerCase() ?? "",
-    konfidentialitet: sys.konfidentialitet,
-    riktighet: sys.riktighet,
-    tillganglighet: sys.tillganglighet,
     ownerOrganizationId: sys.ownerOrg?.id ?? "",
     systemOwnerId: sys.systemOwner?.id ?? "",
     technicalContactId: sys.technicalContact?.id ?? "",
@@ -280,38 +270,6 @@ export default function SystemFormDialog({
             onChange={(e) => update("description", e.target.value)}
           />
         </Field>
-        <div className="sm:col-span-2">
-          <p className="text-small font-bold mb-14">{t.krt.title}</p>
-          <div className="flex flex-col gap-12">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-0">
-              <span className="text-small w-[12rem] shrink-0">
-                {t.krt.confidentiality}
-              </span>
-              <KrtSelect
-                value={form.konfidentialitet}
-                onChange={(v) => update("konfidentialitet", v)}
-              />
-            </div>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-0">
-              <span className="text-small w-[12rem] shrink-0">
-                {t.krt.integrity}
-              </span>
-              <KrtSelect
-                value={form.riktighet}
-                onChange={(v) => update("riktighet", v)}
-              />
-            </div>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-0">
-              <span className="text-small w-[12rem] shrink-0">
-                {t.krt.availability}
-              </span>
-              <KrtSelect
-                value={form.tillganglighet}
-                onChange={(v) => update("tillganglighet", v)}
-              />
-            </div>
-          </div>
-        </div>
       </div>
     </FormDialog>
   );

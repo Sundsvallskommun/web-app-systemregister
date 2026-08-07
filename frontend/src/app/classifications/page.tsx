@@ -1,43 +1,48 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Label, Table } from "@sk-web-gui/react";
+import { useCallback, useEffect, useState } from "react";
+import { Button, Label, Link, Table } from "@sk-web-gui/react";
+import { Pencil } from "lucide-react";
 import AppShell from "@/components/AppShell";
+import ClassificationFormDialog from "@/components/ClassificationFormDialog";
 import { KrtChip } from "@/components/KrtDisplay";
 import { useAuth } from "@/lib/auth";
 import { get } from "@/lib/api";
 import type { System, PaginatedResponse } from "@/lib/api";
-import { KRT_LEVEL_COLOR, type SemanticColor } from "@/lib/enums";
+import { KRT_LEVEL_COLOR } from "@/lib/enums";
+import { classLevel, isBusinessCritical } from "@/lib/krt";
 import t from "@/lib/i18n";
-
-function classLevel(
-  k: number,
-  r: number,
-  t_: number,
-): { label: string; color: SemanticColor } {
-  const max = Math.max(k, r, t_);
-  if (max >= 4) return { label: t.krt.levels.critical, color: "error" };
-  if (max >= 3) return { label: t.krt.levels.high, color: "warning" };
-  if (max >= 2) return { label: t.krt.levels.medium, color: "info" };
-  return { label: t.krt.levels.low, color: "success" };
-}
 
 export default function ClassificationsPage() {
   const { auth } = useAuth();
   const [systems, setSystems] = useState<System[]>([]);
+  const [editing, setEditing] = useState<System | null>(null);
 
-  useEffect(() => {
+  const loadSystems = useCallback(() => {
     if (!auth) return;
     get<PaginatedResponse<System>>("/systems?limit=100", auth.token)
       .then((res) => setSystems(res.data ?? []))
       .catch(() => {});
   }, [auth]);
 
+  useEffect(() => {
+    loadSystems();
+  }, [loadSystems]);
+
+  const canEdit = auth?.role === "admin" || auth?.role === "editor";
+
   return (
     <AppShell>
       <h1 className="text-h2 mb-24">{t.krt.title}</h1>
 
-      <p className="mb-24">{t.krt.infoText}</p>
+      <p className="mb-8">{t.krt.infoText}</p>
+
+      <p className="mb-24">
+        {t.krt.businessCriticalRule}{" "}
+        <Link href={t.krt.mcfUrl} external>
+          {t.krt.mcfLinkLabel}
+        </Link>
+      </p>
 
       <Table background scrollable="x">
         <Table.Header>
@@ -54,12 +59,22 @@ export default function ClassificationsPage() {
             <span title={t.krt.availability}>{t.krt.short.t}</span>
           </Table.HeaderColumn>
           <Table.HeaderColumn>{t.krt.assessment}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.krt.businessCritical}</Table.HeaderColumn>
           <Table.HeaderColumn>{t.systems.criticality}</Table.HeaderColumn>
+          {canEdit && (
+            <Table.HeaderColumn className="justify-end" sticky={true}>
+              {t.actions}
+            </Table.HeaderColumn>
+          )}
         </Table.Header>
         <Table.Body>
           {systems.map((sys) => {
             const cl = classLevel(
               sys.konfidentialitet,
+              sys.riktighet,
+              sys.tillganglighet,
+            );
+            const businessCritical = isBusinessCritical(
               sys.riktighet,
               sys.tillganglighet,
             );
@@ -84,7 +99,14 @@ export default function ClassificationsPage() {
                   <KrtChip value={sys.tillganglighet} />
                 </Table.Column>
                 <Table.Column>
-                  <Label color={cl.color}>{cl.label}</Label>
+                  <Label color={cl.color} className="whitespace-nowrap">
+                    {cl.label}
+                  </Label>
+                </Table.Column>
+                <Table.Column>
+                  <Label color={businessCritical ? "error" : "tertiary"}>
+                    {businessCritical ? t.yes : t.no}
+                  </Label>
                 </Table.Column>
                 <Table.Column>
                   {sys.CriticalityLevel ? (
@@ -100,18 +122,43 @@ export default function ClassificationsPage() {
                     t.emptyValue
                   )}
                 </Table.Column>
+                {canEdit && (
+                  <Table.Column className="justify-end" sticky={true}>
+                    <Button
+                      iconButton
+                      variant="tertiary"
+                      size="sm"
+                      aria-label={t.krt.a11yClassify(sys.name)}
+                      onClick={() => setEditing(sys)}
+                    >
+                      <Pencil />
+                    </Button>
+                  </Table.Column>
+                )}
               </Table.Row>
             );
           })}
           {systems.length === 0 && (
             <Table.Row>
-              <Table.Column colSpan={8} className="justify-center py-32">
+              <Table.Column
+                colSpan={canEdit ? 10 : 9}
+                className="justify-center py-32"
+              >
                 {t.systems.noSystems}
               </Table.Column>
             </Table.Row>
           )}
         </Table.Body>
       </Table>
+
+      <ClassificationFormDialog
+        system={editing}
+        onClose={() => setEditing(null)}
+        onSaved={() => {
+          setEditing(null);
+          loadSystems();
+        }}
+      />
     </AppShell>
   );
 }
