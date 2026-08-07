@@ -98,12 +98,12 @@ export default function ClassificationsPage() {
                 <Table.Column className="justify-center">
                   <KrtChip value={sys.tillganglighet} />
                 </Table.Column>
-                <Table.Column>
+                <Table.Column data-cy="assessment">
                   <Label color={cl.color} className="whitespace-nowrap">
                     {cl.label}
                   </Label>
                 </Table.Column>
-                <Table.Column>
+                <Table.Column data-cy="business-critical">
                   <Label color={businessCritical ? "error" : "tertiary"}>
                     {businessCritical ? t.yes : t.no}
                   </Label>

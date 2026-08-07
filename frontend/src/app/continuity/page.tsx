@@ -77,7 +77,7 @@ export default function ContinuityPage() {
                 <Table.Column className="justify-center">
                   <KrtChip value={sys.tillganglighet} />
                 </Table.Column>
-                <Table.Column>
+                <Table.Column data-cy="business-critical">
                   <Label color={critical ? "error" : "tertiary"}>
                     {critical ? t.yes : t.no}
                   </Label>
@@ -86,7 +86,7 @@ export default function ContinuityPage() {
                     gör för verksamhetskritiska system — den går inte att härleda
                     ur K/R/T. Visas som "Ej bedömt" tills api-service lagrar
                     svaret och motiveringen. */}
-                <Table.Column>
+                <Table.Column data-cy="societal-critical">
                   {critical ? (
                     <Label color="warning">{t.krt.notAssessed}</Label>
                   ) : (

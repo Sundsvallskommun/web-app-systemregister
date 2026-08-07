@@ -9,8 +9,16 @@ describe("Classifications (K/R/T) page", () => {
     cy.contains("SYS-001").should("be.visible");
     cy.contains("Raindance").should("be.visible");
 
-    cy.contains("Verksamhetskritiskt").should("be.visible");
-    cy.contains("Medium").should("be.visible");
+    cy.contains("tr", "SYS-001")
+      .find("[data-cy=business-critical]")
+      .should("have.text", "Ja");
+    cy.contains("tr", "SYS-003")
+      .find("[data-cy=business-critical]")
+      .should("have.text", "Nej");
+
+    cy.contains("tr", "SYS-003")
+      .find("[data-cy=assessment]")
+      .should("contain.text", "Medium");
   });
 
   it("shows an empty state when there are no systems", () => {

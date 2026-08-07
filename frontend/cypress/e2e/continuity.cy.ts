@@ -7,11 +7,13 @@ describe("Continuity page", () => {
     cy.contains("Verksamhetskritiskt").should("be.visible");
     cy.contains("Samhällsviktigt").should("be.visible");
 
-    cy.contains("ByggR")
-      .closest("tr")
-      .within(() => {
-        cy.contains("Ja").should("exist");
-      });
+    cy.contains("tr", "ByggR")
+      .find("[data-cy=business-critical]")
+      .should("have.text", "Ja");
+
+    cy.contains("tr", "Treserva")
+      .find("[data-cy=business-critical]")
+      .should("have.text", "Nej");
   });
 
   it("shows an empty state when there are no systems", () => {
