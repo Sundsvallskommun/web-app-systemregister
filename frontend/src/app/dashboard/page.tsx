@@ -23,19 +23,19 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!auth) return;
-    get<PaginatedResponse<System>>("/systems", auth.token)
+    get<PaginatedResponse<System>>("/systems")
       .then((res) => {
         setSystemCount(res.total ?? res.data?.length ?? 0);
         setRecentSystems((res.data ?? []).slice(0, 5));
       })
       .catch(() => {});
-    get<{ id: string }[]>("/organizations", auth.token)
+    get<{ id: string }[]>("/organizations")
       .then((res) => setOrgCount(res.length))
       .catch(() => {});
-    get<PPB[]>("/gdpr", auth.token)
+    get<PPB[]>("/gdpr")
       .then((res) => setPpbCount(res.length))
       .catch(() => {});
-    get<AiApplication[]>("/ai", auth.token)
+    get<AiApplication[]>("/ai")
       .then((res) => setAiCount(res.length))
       .catch(() => {});
   }, [auth]);

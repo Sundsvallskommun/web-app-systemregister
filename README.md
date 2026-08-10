@@ -41,6 +41,7 @@ The actual data API (`api-service-systemregister`, Java/Spring Boot + MariaDB) l
 - Yarn (recommended) or npm
 - Docker Desktop (for api-service + MariaDB)
 - Sibling repo `../api-service-systemregister` (Docker builds it from that path)
+- A SAML IdP for login — locally [`web-app-fake-sso-idp`](https://github.com/Sundsvallskommun/web-app-fake-sso-idp) on port 7000 (see [Auth](#auth))
 
 ## Quick start
 
@@ -62,7 +63,7 @@ cd backend && yarn dev      # http://localhost:3001
 cd frontend && yarn dev     # http://localhost:3000
 ```
 
-Navigate to <http://localhost:3000> and log in (see [Auth](#auth) below).
+Navigate to <http://localhost:3000> and log in with SSO (see [Auth](#auth) below).
 
 Stop the Docker stack:
 
@@ -91,38 +92,14 @@ MARIADB_ROOT_PASSWORD=change-me-root
 
 - `API_BASE_URL=http://localhost:8080` (api-service is exposed on the host port)
 - `MUNICIPALITY_ID=xxxx`
-- `JWT_SECRET=…` (generate a long random string)
-- `ORIGIN=http://localhost:3000`
-- `SEED_ADMIN_PASSWORD`, `SEED_EDITOR_PASSWORD`, `SEED_VIEWER_PASSWORD` — login passwords for the three seed users (see [Auth](#auth) below)
+- `SECRET_KEY=…` (signs the session cookie — generate a long random string)
+- `ORIGIN=http://localhost:3000` — CORS allowlist, also the allowlist for post-login redirect targets
+- `SAML_*` — IdP endpoint, certificate and redirect URLs
+- `ADMIN_GROUP` / `EDITOR_GROUP` / `VIEWER_GROUP` — the AD groups that grant each access level
 
 `frontend/.env.local`:
 
 - `NEXT_PUBLIC_API_URL=http://localhost:3001/api` (points at the BFF)
-
-## Auth
-
-The BFF uses JWT with username/password. Three seed users are defined; their passwords are read from env vars at startup:
-
-| Username | Env var                | Default in dev    | Role   | Shown in UI as   |
-| -------- | ---------------------- | ----------------- | ------ | ---------------- |
-| `admin`  | `SEED_ADMIN_PASSWORD`  | `dev-admin-only`  | admin  | Admin            |
-| `editor` | `SEED_EDITOR_PASSWORD` | `dev-editor-only` | editor | Systemförvaltare |
-| `viewer` | `SEED_VIEWER_PASSWORD` | `dev-viewer-only` | viewer | IT-samordnare    |
-
-> The role values in code are generic (`admin`/`editor`/`viewer`); the verksamhet's names for them live as labels in `frontend/src/lib/i18n.ts` under `roles`.
-
-> When `NODE_ENV=production` the BFF refuses to start unless all three `SEED_*_PASSWORD` env vars are set explicitly. The dev defaults are intentionally obvious placeholders — change them locally if you want.
-
-Endpoints:
-
-- `POST /api/auth/login` → `{ accessToken, refreshToken, role, expiresIn }`
-- `POST /api/auth/refresh` → new accessToken
-- `POST /api/auth/logout`
-
-Role policy in the proxy: `viewer` can read, `editor` can read + write, `admin` can also DELETE.
-Registering a new system (`POST /api/systems`) is admin-only — see `createRoles` in `backend/src/controllers/systems.controller.ts`.
-
-> The seed users live in `backend/src/services/auth.service.ts`. Switch to a `users` table in api-service, or port the SAML setup from `web-app-new-personal-files` when the time comes.
 
 ## Seed data
 
