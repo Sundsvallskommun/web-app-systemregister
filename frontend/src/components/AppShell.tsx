@@ -5,13 +5,12 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { Button, Header, MenuVertical, UserMenu } from "@sk-web-gui/react";
 import { LogOut, Menu as MenuIcon, X } from "lucide-react";
-import { useAuth } from "@/lib/auth";
+import { useAuth, type AuthState } from "@/lib/auth";
 import t from "@/lib/i18n";
 
 interface NavItem {
   label: string;
   href: string;
-  roles?: string[];
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -26,18 +25,35 @@ const NAV_ITEMS: NavItem[] = [
   { label: t.nav.continuity, href: "/continuity" },
   { label: t.nav.reports, href: "/reports" },
   { label: t.nav.notifications, href: "/notifications" },
-  { label: t.nav.admin, href: "/admin", roles: ["admin"] },
 ];
 
+/**
+ * Initialer till avataren. IdP:n skickar för- och efternamn var för sig; saknas
+ * de faller vi tillbaka på det sammansatta namnet och sist på användarnamnet.
+ */
+function getInitials({ givenName, surname, name, username }: AuthState): string {
+  if (givenName && surname) {
+    return `${givenName.charAt(0)}${surname.charAt(0)}`.toUpperCase();
+  }
+
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length > 1) {
+    return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
+  }
+
+  return (parts[0] ?? username).charAt(0).toUpperCase() || "?";
+}
+
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const { auth, logout } = useAuth();
+  const { auth, loading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
-    if (!auth) router.replace("/");
-  }, [auth, router]);
+    // Vänta in /me innan vi skickar iväg någon till inloggningen
+    if (!loading && !auth) router.replace("/");
+  }, [auth, loading, router]);
 
   useEffect(() => {
     setMobileNavOpen(false);
@@ -45,23 +61,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   if (!auth) return null;
 
-  const visibleItems = NAV_ITEMS.filter(
-    (item) => !item.roles || item.roles.includes(auth.role),
-  );
-
-  const handleLogout = () => {
-    logout();
-    router.replace("/");
-  };
+  // logout() navigerar vidare till BFF:ens Single Logout
+  const handleLogout = () => logout();
 
   const roleLabel = t.roles[auth.role] ?? auth.role;
+  const displayName = auth.name || auth.username;
 
   const nav = (
     <MenuVertical.Provider>
       <MenuVertical.Sidebar>
         <MenuVertical.Nav>
           <MenuVertical>
-            {visibleItems.map((item) => (
+            {NAV_ITEMS.map((item) => (
               <MenuVertical.Item
                 key={item.href}
                 menuIndex={item.href}
@@ -93,8 +104,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         }
         userMenu={
           <UserMenu
-            initials={auth.username?.charAt(0) ?? "?"}
-            menuTitle={auth.username}
+            initials={getInitials(auth)}
+            menuTitle={displayName}
             menuSubTitle={roleLabel}
             menuGroups={[
               {
@@ -143,7 +154,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               {nav}
               <div className="mt-16 border-t border-divider pt-16">
                 <p className="mb-8 text-small text-dark-secondary">
-                  {auth.username} · {roleLabel}
+                  {displayName} · {roleLabel}
                 </p>
                 <Button
                   variant="tertiary"

@@ -1,49 +1,80 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
-import type { LoginResponse } from "./api";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  type ReactNode,
+} from "react";
+import { getMe, ssoLoginUrl, ssoLogoutUrl, type Role } from "./api";
 
 export interface AuthState {
-  token: string;
-  role: "admin" | "editor" | "viewer";
-  username?: string;
+  username: string;
+  name: string;
+  givenName: string;
+  surname: string;
+  email: string;
+  /** AD-grupper användaren är medlem i (normaliserade till lowercase) */
+  groups: string[];
+  role: Role;
 }
 
 interface AuthContextValue {
   auth: AuthState | null;
-  setAuth: (state: AuthState | null) => void;
+  /** true tills /me har svarat — undviker att guards redirectar för tidigt */
+  loading: boolean;
+  /** Startar SSO-inloggningen (full sidnavigering till BFF -> IdP) */
+  login: (returnPath?: string) => void;
+  /** Loggar ut lokalt och hos IdP:n (Single Logout) */
   logout: () => void;
+  refresh: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [auth, setAuthState] = useState<AuthState | null>(null);
-  const [loaded, setLoaded] = useState(false);
+  const [auth, setAuth] = useState<AuthState | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  const refresh = useCallback(async () => {
+    try {
+      const res = await getMe();
+      setAuth(res.data);
+    } catch {
+      setAuth(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Sessionen lever i en cookie hos BFF:en — /me är enda sättet att veta om
+  // den fortfarande gäller.
   useEffect(() => {
-    const stored = sessionStorage.getItem("auth");
-    if (stored) {
-      try { setAuthState(JSON.parse(stored)); } catch { /* ignore */ }
-    }
-    setLoaded(true);
+    let active = true;
+
+    getMe()
+      .then((res) => active && setAuth(res.data))
+      .catch(() => active && setAuth(null))
+      .finally(() => active && setLoading(false));
+
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const setAuth = useCallback((state: AuthState | null) => {
-    setAuthState(state);
-    if (state) {
-      sessionStorage.setItem("auth", JSON.stringify(state));
-    } else {
-      sessionStorage.removeItem("auth");
-    }
+  const login = useCallback((returnPath = "/dashboard") => {
+    window.location.href = ssoLoginUrl(returnPath);
   }, []);
 
-  const logout = useCallback(() => setAuth(null), [setAuth]);
-
-  if (!loaded) return null;
+  const logout = useCallback(() => {
+    setAuth(null);
+    window.location.href = ssoLogoutUrl();
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ auth, setAuth, logout }}>
+    <AuthContext.Provider value={{ auth, loading, login, logout, refresh }}>
       {children}
     </AuthContext.Provider>
   );

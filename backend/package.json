@@ -14,8 +14,8 @@
     "type-check": "tsc --pretty --noEmit"
   },
   "dependencies": {
+    "@node-saml/passport-saml": "^5.1.0",
     "axios": "^1.7.7",
-    "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",
     "compression": "^1.7.5",
     "cookie-parser": "^1.4.7",
@@ -23,27 +23,29 @@
     "dotenv": "^16.4.7",
     "envalid": "^8.0.0",
     "express": "^4.21.2",
-    "express-rate-limit": "^7.4.1",
+    "express-rate-limit": "^8.6.2",
+    "express-session": "^1.18.2",
     "helmet": "^8.0.0",
     "hpp": "^0.2.3",
-    "jsonwebtoken": "^9.0.2",
+    "memorystore": "^1.6.7",
     "morgan": "^1.10.0",
+    "passport": "^0.7.0",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^11.0.4",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
     "@types/compression": "^1.7.5",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/express-session": "^1.18.2",
     "@types/hpp": "^0.2.6",
     "@types/jest": "^29.5.14",
-    "@types/jsonwebtoken": "^9.0.7",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.10.5",
+    "@types/passport": "^1.0.17",
     "@types/swagger-ui-express": "^4.1.7",
     "@typescript-eslint/eslint-plugin": "^8.18.0",
     "@typescript-eslint/parser": "^8.18.0",
@@ -57,5 +59,10 @@
     "tsc-alias": "^1.8.10",
     "tsconfig-paths": "^4.2.0",
     "typescript": "5.7.2"
+  },
+  "//resolutions": "@types/compression drar in @types/express 5 — appen kör Express 4. Två parallella Request-typer gör att passport/saml-typerna inte matchar, så vi låser hela trädet till v4.",
+  "resolutions": {
+    "@types/express": "^4.17.21",
+    "@types/express-serve-static-core": "^4.19.6"
   }
 }
