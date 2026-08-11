@@ -146,6 +146,8 @@ export interface System {
   tillganglighet: number;
   ownerOrg?: { id: string; name: string };
   systemOwner?: { id: string; firstName: string; lastName: string; email: string };
+  /** Utsedd systemförvaltare — avgör vilka system en editor ser och får ändra */
+  systemManager?: { id: string; firstName: string; lastName: string; email: string };
   technicalContact?: { id: string; firstName: string; lastName: string; email: string };
   Supplier?: Supplier;
   CriticalityLevel?: CriticalityLevel;

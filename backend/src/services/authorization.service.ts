@@ -1,5 +1,5 @@
 import { ADMIN_GROUP, EDITOR_GROUP, VIEWER_GROUP } from '@config';
-import { UserRole } from '@/interfaces/user.interface';
+import { User, UserRole } from '@/interfaces/user.interface';
 import { parseConfiguredGroups } from '@/utils/normalizeGroup';
 
 /**
@@ -52,4 +52,13 @@ export function getPrimaryRole(groups: string[]): UserRole | null {
     if (role) roles.add(role);
   }
   return ROLE_PRECEDENCE.find(role => roles.has(role)) ?? null;
+}
+
+/**
+ * Systemförvaltaren (editor) ser och redigerar bara de system den är utsedd
+ * förvaltare för — systems.system_manager_id pekar ut personen. Admin ser hela
+ * registret, viewer begränsas inte här (den behörigheten styrs separat).
+ */
+export function isSystemManagerScoped(user: Pick<User, 'role'>): boolean {
+  return user.role === 'editor';
 }

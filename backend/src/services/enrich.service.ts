@@ -15,6 +15,8 @@ interface PersonRef {
   firstName: string;
   lastName: string;
   email?: string;
+  /** AD-konto — kopplar den inloggade användaren till sin person-post */
+  username?: string;
 }
 
 interface OrgRef {
@@ -32,6 +34,8 @@ interface CriticalityRef {
 export interface RefData {
   suppliers: Map<string, SupplierRef>;
   persons: Map<string, PersonRef>;
+  /** Samma personer, uppslagna på lowercase username */
+  personsByUsername: Map<string, PersonRef>;
   organizations: Map<string, OrgRef>;
   criticalityLevels: Map<string, CriticalityRef>;
 }
@@ -63,18 +67,34 @@ export async function loadRefData(): Promise<RefData> {
     apiService.get<unknown>('criticality-levels'),
   ]);
 
+  const persons = asArray<PersonRef>(personsRaw);
+
   return {
     suppliers: toMap(asArray<SupplierRef>(suppliersRaw)),
-    persons: toMap(asArray<PersonRef>(personsRaw)),
+    persons: toMap(persons),
+    personsByUsername: new Map(
+      persons.filter(p => p.username).map(p => [p.username!.trim().toLowerCase(), p]),
+    ),
     organizations: toMap(asArray<OrgRef>(orgsRaw)),
     criticalityLevels: toMap(asArray<CriticalityRef>(critRaw)),
   };
+}
+
+/**
+ * Person-posten för ett AD-konto. Kopplingen mellan inloggad användare och
+ * person-registret går via username — saknas den finns ingen person-post.
+ */
+export function findPersonByUsername(refs: RefData, username?: string | null): PersonRef | undefined {
+  if (!username) return undefined;
+
+  return refs.personsByUsername.get(username.trim().toLowerCase());
 }
 
 interface SystemBase {
   id: string;
   ownerOrganizationId?: string;
   systemOwnerId?: string;
+  systemManagerId?: string;
   technicalContactId?: string;
   supplierId?: string;
   criticalityLevelId?: string;
@@ -89,6 +109,7 @@ interface SystemBase {
 export function enrichSystem(sys: SystemBase, refs: RefData): Record<string, unknown> {
   const owner = sys.ownerOrganizationId ? refs.organizations.get(sys.ownerOrganizationId) : undefined;
   const sysOwner = sys.systemOwnerId ? refs.persons.get(sys.systemOwnerId) : undefined;
+  const sysManager = sys.systemManagerId ? refs.persons.get(sys.systemManagerId) : undefined;
   const techContact = sys.technicalContactId ? refs.persons.get(sys.technicalContactId) : undefined;
   const supplier = sys.supplierId ? refs.suppliers.get(sys.supplierId) : undefined;
   const crit = sys.criticalityLevelId ? refs.criticalityLevels.get(sys.criticalityLevelId) : undefined;
@@ -98,6 +119,14 @@ export function enrichSystem(sys: SystemBase, refs: RefData): Record<string, unk
     ownerOrg: owner ? { id: owner.id, name: owner.name } : undefined,
     systemOwner: sysOwner
       ? { id: sysOwner.id, firstName: sysOwner.firstName, lastName: sysOwner.lastName, email: sysOwner.email }
+      : undefined,
+    systemManager: sysManager
+      ? {
+          id: sysManager.id,
+          firstName: sysManager.firstName,
+          lastName: sysManager.lastName,
+          email: sysManager.email,
+        }
       : undefined,
     technicalContact: techContact
       ? { id: techContact.id, firstName: techContact.firstName, lastName: techContact.lastName, email: techContact.email }
