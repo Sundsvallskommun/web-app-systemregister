@@ -26,6 +26,7 @@ interface SystemForm {
   tillganglighet: number;
   ownerOrganizationId: string;
   systemOwnerId: string;
+  systemManagerId: string;
   technicalContactId: string;
   supplierId: string;
 }
@@ -42,6 +43,7 @@ const EMPTY_FORM: SystemForm = {
   tillganglighet: 0,
   ownerOrganizationId: "",
   systemOwnerId: "",
+  systemManagerId: "",
   technicalContactId: "",
   supplierId: "",
 };
@@ -59,6 +61,7 @@ function systemToForm(sys: System): SystemForm {
     tillganglighet: sys.tillganglighet,
     ownerOrganizationId: sys.ownerOrg?.id ?? "",
     systemOwnerId: sys.systemOwner?.id ?? "",
+    systemManagerId: sys.systemManager?.id ?? "",
     technicalContactId: sys.technicalContact?.id ?? "",
     supplierId: sys.Supplier?.id ?? "",
   };
@@ -235,6 +238,20 @@ export default function SystemFormDialog({
           <Select
             value={form.systemOwnerId}
             onChange={(e) => update("systemOwnerId", e.target.value)}
+            className="w-full"
+          >
+            <Select.Option value="">{t.emptyValue}</Select.Option>
+            {persons.map((p) => (
+              <Select.Option key={p.id} value={p.id}>
+                {p.firstName} {p.lastName}
+              </Select.Option>
+            ))}
+          </Select>
+        </Field>
+        <Field label={systemsText.systemManager}>
+          <Select
+            value={form.systemManagerId}
+            onChange={(e) => update("systemManagerId", e.target.value)}
             className="w-full"
           >
             <Select.Option value="">{t.emptyValue}</Select.Option>

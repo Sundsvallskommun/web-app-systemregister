@@ -99,6 +99,7 @@ const sv = {
     supplier: "Leverantör",
     ownerOrg: "Ägande organisation",
     systemOwner: "Systemägare",
+    systemManager: "Systemförvaltare",
     technicalContact: "Teknisk kontakt",
     criticality: "Kritikalitet",
     noSystems: "Inga system hittades",
