@@ -1,61 +1,92 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
 
-interface RequestOptions extends RequestInit {
-  token?: string;
+/** Kastas när BFF:en svarar 401 — sessionen finns inte eller har gått ut. */
+export class UnauthenticatedError extends Error {
+  constructor() {
+    super("NOT_AUTHENTICATED");
+    this.name = "UnauthenticatedError";
+  }
 }
 
-async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
-  const { token, headers, ...rest } = opts;
+async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
+  const { headers, ...rest } = opts;
   const res = await fetch(`${API_BASE}${path}`, {
+    // Sessionscookien från SSO-inloggningen måste följa med varje anrop
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
     ...rest,
   });
   if (!res.ok) {
-    if (res.status === 401 && typeof window !== "undefined") {
-      sessionStorage.removeItem("auth");
-      window.location.href = "/";
-      throw new Error("Sessionen har gatt ut");
+    if (res.status === 401) {
+      throw new UnauthenticatedError();
     }
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error ?? `Request failed: ${res.status}`);
+    throw new Error(body.message ?? body.error ?? `Request failed: ${res.status}`);
   }
+  if (res.status === 204) return undefined as T;
   return res.json();
 }
 
-// --- Auth ---
-export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  role: "admin" | "editor" | "viewer";
-  expiresIn: number;
+// --- Auth / SSO ---
+export type Role = "admin" | "editor" | "viewer";
+
+export interface MeResponse {
+  data: {
+    username: string;
+    name: string;
+    givenName: string;
+    surname: string;
+    email: string;
+    groups: string[];
+    role: Role;
+  };
 }
 
-export function login(username: string, password: string) {
-  return request<LoginResponse>("/auth/login", {
-    method: "POST",
-    body: JSON.stringify({ username, password }),
+/** Hämtar inloggad användare. Kastar UnauthenticatedError om sessionen saknas. */
+export function getMe() {
+  return request<MeResponse>("/me");
+}
+
+const currentOrigin = () =>
+  typeof window !== "undefined" ? window.location.origin : "";
+
+/**
+ * SSO-inloggning sker med en full sidnavigering till BFF:en, som i sin tur
+ * redirectar till kommunens IdP. successRedirect tar användaren tillbaka hit.
+ */
+export function ssoLoginUrl(returnPath = "/dashboard") {
+  const params = new URLSearchParams({
+    successRedirect: `${currentOrigin()}${returnPath}`,
+    failureRedirect: `${currentOrigin()}/`,
   });
+  return `${API_BASE}/saml/login?${params.toString()}`;
+}
+
+export function ssoLogoutUrl() {
+  const params = new URLSearchParams({
+    successRedirect: `${currentOrigin()}/`,
+  });
+  return `${API_BASE}/saml/logout?${params.toString()}`;
 }
 
 // --- Generic CRUD ---
-export function get<T>(path: string, token: string) {
-  return request<T>(path, { token });
+export function get<T>(path: string) {
+  return request<T>(path);
 }
 
-export function post<T>(path: string, body: unknown, token: string) {
-  return request<T>(path, { method: "POST", body: JSON.stringify(body), token });
+export function post<T>(path: string, body: unknown) {
+  return request<T>(path, { method: "POST", body: JSON.stringify(body) });
 }
 
-export function patch<T>(path: string, body: unknown, token: string) {
-  return request<T>(path, { method: "PATCH", body: JSON.stringify(body), token });
+export function patch<T>(path: string, body: unknown) {
+  return request<T>(path, { method: "PATCH", body: JSON.stringify(body) });
 }
 
-export function del(path: string, token: string) {
-  return request<void>(path, { method: "DELETE", token });
+export function del(path: string) {
+  return request<void>(path, { method: "DELETE" });
 }
 
 // --- Shared types ---
@@ -170,16 +201,6 @@ export interface AiApplication {
   SystemModel?: { id: string; name: string; systemId: string };
   ownerOrg?: { id: string; name: string };
   contact?: { id: string; firstName: string; lastName: string; email: string };
-}
-
-export interface AdminUser {
-  id: string;
-  username: string;
-  email: string;
-  name?: string;
-  role: string;
-  isActive: boolean;
-  createdAt: string;
 }
 
 export interface PaginatedResponse<T> {

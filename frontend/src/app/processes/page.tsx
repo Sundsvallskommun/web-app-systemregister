@@ -17,7 +17,7 @@ export default function ProcessesPage() {
 
   useEffect(() => {
     if (!auth) return;
-    get<PaginatedResponse<System>>("/systems?limit=100", auth.token)
+    get<PaginatedResponse<System>>("/systems?limit=100")
       .then((res) => setSystems(res.data ?? []))
       .catch(() => {});
   }, [auth]);

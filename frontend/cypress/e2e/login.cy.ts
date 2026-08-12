@@ -1,54 +1,84 @@
 describe("Authentication", () => {
   it("redirects to login when unauthenticated", () => {
-    cy.visit("/dashboard");
+    cy.visitAnonymous("/dashboard");
+    cy.wait("@getMe");
     cy.location("pathname").should("eq", "/");
+  });
+
+  it("keeps an authenticated visitor on the requested page", () => {
+    cy.visitAs("/dashboard", "admin");
+    cy.wait("@getMe");
+    cy.location("pathname").should("eq", "/dashboard");
+    cy.contains("h1", "Dashboard").should("be.visible");
+  });
+
+  it("sends an already logged in visitor from the login page to the dashboard", () => {
+    cy.visitAs("/", "viewer");
+    cy.wait("@getMe");
+    cy.location("pathname").should("eq", "/dashboard");
+  });
+
+  it("shows the initials from the IdP in the app bar", () => {
+    // Stubben i visitAs loggar in "Test Testsson"
+    cy.visitAs("/dashboard", "admin");
+    cy.wait("@getMe");
+    cy.get(".sk-avatar").contains("TT").should("be.visible");
+  });
+
+  it("falls back to the full name when the IdP sends no given/surname", () => {
+    cy.intercept("GET", "**/api/me", {
+      statusCode: 200,
+      body: {
+        data: {
+          username: "kar01and",
+          name: "Karin Andersson",
+          givenName: "",
+          surname: "",
+          email: "karin.andersson@example.com",
+          groups: ["systemregister_viewer"],
+          role: "viewer",
+        },
+      },
+    }).as("getMe");
+
+    cy.visit("/dashboard");
+    cy.wait("@getMe");
+    cy.get(".sk-avatar").contains("KA").should("be.visible");
   });
 });
 
 describe("Login page", () => {
   beforeEach(() => {
-    cy.visit("/");
+    cy.visitAnonymous("/");
+    cy.wait("@getMe");
   });
 
-  it("shows the application header and login form", () => {
+  it("shows the application header and an SSO login button", () => {
     cy.contains("Systemregistret").should("be.visible");
-    cy.contains("Användarnamn").should("be.visible");
-    cy.contains("Lösenord").should("be.visible");
-    cy.get("button[type=submit]").should("contain.text", "Logga in");
+    cy.contains("button", "Logga in med SSO").should("be.visible");
+    cy.get('input[type="password"]').should("not.exist");
   });
 
-  it("logs in with valid credentials and redirects to the dashboard", () => {
-    cy.intercept("POST", "**/api/auth/login", {
+  it("starts the SSO flow against the BFF when the button is clicked", () => {
+    // Stubba BFF:ens login-route så navigeringen inte lämnar testmiljön
+    cy.intercept("GET", "**/api/saml/login*", {
       statusCode: 200,
-      body: {
-        accessToken: "test-token",
-        refreshToken: "test-refresh",
-        role: "admin",
-        expiresIn: 3600,
-      },
-    }).as("login");
+      body: "sso",
+    }).as("ssoLogin");
 
-    cy.get("form").find("input").first().type("admin");
-    cy.get('input[type="password"]').type("password123");
-    cy.get("button[type=submit]").click();
+    cy.contains("button", "Logga in med SSO").click();
 
-    cy.wait("@login");
-    cy.location("pathname").should("eq", "/dashboard");
-    cy.contains("h1", "Dashboard").should("be.visible");
+    cy.wait("@ssoLogin")
+      .its("request.url")
+      .should("include", "successRedirect=")
+      .and("include", "%2Fdashboard");
   });
 
-  it("shows an error message when the credentials are rejected", () => {
-    cy.intercept("POST", "**/api/auth/login", {
-      statusCode: 400,
-      body: { error: "Fel användarnamn eller lösenord" },
-    }).as("login");
+  it("shows an error message when the IdP rejected the login", () => {
+    cy.visitAnonymous("/?failMessage=MISSING_PERMISSIONS");
+    cy.wait("@getMe");
 
-    cy.get("form").find("input").first().type("admin");
-    cy.get('input[type="password"]').type("wrong");
-    cy.get("button[type=submit]").click();
-
-    cy.wait("@login");
-    cy.contains("Fel användarnamn eller lösenord").should("be.visible");
+    cy.contains("Ditt konto saknar behörighet").should("be.visible");
     cy.location("pathname").should("eq", "/");
   });
 });

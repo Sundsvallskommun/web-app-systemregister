@@ -25,14 +25,22 @@ const sv = {
   emptyValue: "-",
 
   // Auth
-  login: "Logga in",
-  loggingIn: "Loggar in...",
-  loginFailed: "Inloggningen misslyckades",
   username: "Användarnamn",
   email: "E-post",
-  password: "Lösenord",
   logout: "Logga ut",
   sessionExpired: "Sessionen har gått ut",
+
+  // SSO
+  sso: {
+    login: "Logga in med SSO",
+    description:
+      "Du loggar in med ditt vanliga konto i Sundsvalls kommun. Behörighetsnivån styrs av vilka grupper du tillhör.",
+    failed: "Inloggningen misslyckades. Försök igen.",
+    missingPermissions:
+      "Ditt konto saknar behörighet till Systemregistret. Kontakta systemägaren för att få tillgång till rätt grupp.",
+    missingAttributes:
+      "Inloggningen saknade nödvändiga uppgifter om användaren. Kontakta systemägaren.",
+  },
 
   // Accessibility (aria-labels)
   a11y: {
@@ -41,8 +49,6 @@ const sv = {
     view: (name: string) => `Visa ${name}`,
     edit: (name: string) => `Redigera ${name}`,
     delete: (name: string) => `Ta bort ${name}`,
-    showPassword: "Visa lösenord",
-    hidePassword: "Dölj lösenord",
   },
 
   // Roles
@@ -71,7 +77,6 @@ const sv = {
     continuity: "Kontinuitet",
     reports: "Rapporter",
     notifications: "Notifieringar",
-    admin: "Administration",
   },
 
   // Dashboard
@@ -300,16 +305,6 @@ const sv = {
     infoText:
       "Påminnelser för avtalsförnyelser och behörighetskontroller, varningar för risker och saknade åtgärder.",
     unreadCount: (n: number) => `${n} olästa`,
-  },
-
-  // Admin
-  admin: {
-    title: "Administration",
-    infoText: "Hantera användare och roller.",
-    noAccess: "Du har inte behörighet för denna sida.",
-    role: "Roll",
-    created: "Skapad",
-    editRole: "Redigera roll",
   },
 
   // App

@@ -27,7 +27,7 @@ export default function GdprPage() {
 
   useEffect(() => {
     if (!auth) return;
-    get<PPB[]>("/gdpr", auth.token)
+    get<PPB[]>("/gdpr")
       .then(setTreatments)
       .catch(() => {});
   }, [auth]);

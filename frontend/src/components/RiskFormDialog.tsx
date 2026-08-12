@@ -64,7 +64,7 @@ export default function RiskFormDialog({ open, onClose, onSave }: Props) {
     setForm(EMPTY);
     setError("");
     if (auth) {
-      get<PaginatedResponse<System>>("/systems?limit=100", auth.token)
+      get<PaginatedResponse<System>>("/systems?limit=100")
         .then((res) =>
           setSystemOptions(
             (res.data ?? []).map((s) => ({

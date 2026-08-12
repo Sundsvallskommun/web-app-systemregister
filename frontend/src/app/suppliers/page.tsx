@@ -23,7 +23,7 @@ export default function SuppliersPage() {
 
   const load = useCallback(() => {
     if (!auth) return;
-    get<Supplier[]>("/suppliers", auth.token)
+    get<Supplier[]>("/suppliers")
       .then(setSuppliers)
       .catch(() => {});
   }, [auth]);
