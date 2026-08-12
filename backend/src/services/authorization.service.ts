@@ -57,8 +57,22 @@ export function getPrimaryRole(groups: string[]): UserRole | null {
 /**
  * Systemförvaltaren (editor) ser och redigerar bara de system den är utsedd
  * förvaltare för — systems.system_manager_id pekar ut personen. Admin ser hela
- * registret, viewer begränsas inte här (den behörigheten styrs separat).
+ * registret.
  */
 export function isSystemManagerScoped(user: Pick<User, 'role'>): boolean {
   return user.role === 'editor';
+}
+
+/**
+ * IT-samordnaren (viewer) ser bara system som ägs av den egna organisationen
+ * eller någon enhet under den — user.orgId kommer ur orgTree och matchar
+ * systems.owner_organization_id.
+ */
+export function isOrganizationScoped(user: Pick<User, 'role'>): boolean {
+  return user.role === 'viewer';
+}
+
+/** true om användarens roll begränsar vilka system den får se. */
+export function isScoped(user: Pick<User, 'role'>): boolean {
+  return isSystemManagerScoped(user) || isOrganizationScoped(user);
 }

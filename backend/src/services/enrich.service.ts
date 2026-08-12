@@ -22,6 +22,7 @@ interface PersonRef {
 interface OrgRef {
   id: string;
   name: string;
+  parentId?: string | null;
 }
 
 interface CriticalityRef {
@@ -88,6 +89,33 @@ export function findPersonByUsername(refs: RefData, username?: string | null): P
   if (!username) return undefined;
 
   return refs.personsByUsername.get(username.trim().toLowerCase());
+}
+
+/**
+ * Organisationen själv plus alla enheter under den. IT-samordnaren ansvarar för
+ * hela sin gren av trädet, inte bara den nivå hen själv är registrerad på.
+ */
+export function collectOrgBranch(refs: RefData, rootOrgId: string): Set<string> {
+  const childrenByParent = new Map<string, string[]>();
+  for (const org of refs.organizations.values()) {
+    if (!org.parentId) continue;
+    const children = childrenByParent.get(org.parentId) ?? [];
+    children.push(org.id);
+    childrenByParent.set(org.parentId, children);
+  }
+
+  const branch = new Set<string>();
+  const queue = [rootOrgId];
+
+  while (queue.length > 0) {
+    const id = queue.pop()!;
+    // Set-kontrollen skyddar mot cykler i parent-kedjan
+    if (branch.has(id)) continue;
+    branch.add(id);
+    queue.push(...(childrenByParent.get(id) ?? []));
+  }
+
+  return branch;
 }
 
 interface SystemBase {

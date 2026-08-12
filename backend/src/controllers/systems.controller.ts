@@ -2,9 +2,15 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { HttpException } from '@/exceptions/HttpException';
 import { authMiddleware, requireRole } from '@/middlewares/auth.middleware';
 import { apiService } from '@/services/api.service';
-import { isSystemManagerScoped } from '@/services/authorization.service';
-import { loadRefData, enrichSystem, findPersonByUsername, RefData } from '@/services/enrich.service';
-import { UserRole } from '@/interfaces/user.interface';
+import { isOrganizationScoped, isScoped, isSystemManagerScoped } from '@/services/authorization.service';
+import {
+  loadRefData,
+  enrichSystem,
+  findPersonByUsername,
+  collectOrgBranch,
+  RefData,
+} from '@/services/enrich.service';
+import { User, UserRole } from '@/interfaces/user.interface';
 import { uppercaseEnumFields } from '@/utils/enumTransform';
 import { logger } from '@/utils/logger';
 
@@ -19,25 +25,59 @@ const SYSTEM_ENUM_FIELDS = ['status', 'hostingType'] as const;
 const router = Router();
 router.use(authMiddleware);
 
+interface ScopedSystem {
+  systemManagerId?: unknown;
+  ownerOrganizationId?: unknown;
+}
+
 /**
  * Bygger ett filter för den inloggade användaren. Systemförvaltaren begränsas
- * till de system den är utsedd förvaltare för, övriga roller passerar allt.
+ * till de system den är utsedd förvaltare för, IT-samordnaren till system som
+ * ägs av den egna organisationen (inklusive underliggande enheter). Admin
+ * passerar allt.
  *
- * Kopplingen mellan AD-konto och person-post går via username. Saknas den blir
- * urvalet tomt — hellre det än att visa hela registret. Uppslaget görs en gång
- * per request, inte en gång per system.
+ * Kopplingen mellan AD-konto och person-post går via username, och mellan
+ * AD-konto och organisation via orgTree. Saknas någon av dem blir urvalet tomt
+ * Uppslagen görs en gång per request, inte en gång per system.
  */
-function systemFilter(req: Request, refs: RefData): (systemManagerId?: unknown) => boolean {
-  if (!isSystemManagerScoped(req.user!)) return () => true;
+function systemFilter(req: Request, refs: RefData): (sys: ScopedSystem) => boolean {
+  const user = req.user!;
 
-  const person = findPersonByUsername(refs, req.user!.username);
+  if (isSystemManagerScoped(user)) {
+    const person = findPersonByUsername(refs, user.username);
 
-  if (!person) {
-    logger.warn(`${req.user!.username} saknar person-post — ser inga system`);
-    return () => false;
+    if (!person) {
+      logger.warn(`${user.username} saknar person-post — ser inga system`);
+      return () => false;
+    }
+
+    return sys => sys.systemManagerId === person.id;
   }
 
-  return systemManagerId => systemManagerId === person.id;
+  if (isOrganizationScoped(user)) {
+    if (!user.orgId) {
+      logger.warn(`${user.username} saknar orgTree/orgId — ser inga system`);
+      return () => false;
+    }
+
+    if (!refs.organizations.has(user.orgId)) {
+      logger.warn(`${user.username} har orgId ${user.orgId} som saknas i registret — ser inga system`);
+      return () => false;
+    }
+
+    const branch = collectOrgBranch(refs, user.orgId);
+
+    return sys => typeof sys.ownerOrganizationId === 'string' && branch.has(sys.ownerOrganizationId);
+  }
+
+  return () => true;
+}
+
+/** 403-text anpassad efter vad som begränsar användaren. */
+function scopeDeniedMessage(user: Pick<User, 'role'>): string {
+  return isOrganizationScoped(user)
+    ? 'Systemet ägs av en annan organisation'
+    : 'Du är inte utsedd förvaltare för systemet';
 }
 
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
@@ -53,11 +93,12 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const systemsArr = Array.isArray(raw?.systems) ? raw.systems : [];
     const enriched = systemsArr.map(s => enrichSystem(s as Parameters<typeof enrichSystem>[0], refs));
 
-    // api-service kan inte filtrera på förvaltare, så urvalet görs här — efter
-    // pagineringen. Därför speglar _meta hela registret; total räknas om nedan.
-    const scoped = isSystemManagerScoped(req.user!);
+    // api-service kan inte filtrera på förvaltare eller organisation, så urvalet
+    // görs här — efter pagineringen. Därför speglar _meta hela registret;
+    // total räknas om nedan. Uppdateras när filtrering finns i api-service.
+    const scoped = isScoped(req.user!);
     const canSee = systemFilter(req, refs);
-    const visible = scoped ? enriched.filter(s => canSee(s.systemManagerId)) : enriched;
+    const visible = scoped ? enriched.filter(s => canSee(s)) : enriched;
 
     res.json({
       data: visible,
@@ -79,8 +120,8 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       loadRefData(),
     ]);
 
-    if (!systemFilter(req, refs)(sys.systemManagerId)) {
-      throw new HttpException(403, 'Du är inte utsedd förvaltare för systemet');
+    if (!systemFilter(req, refs)(sys)) {
+      throw new HttpException(403, scopeDeniedMessage(req.user!));
     }
 
     res.json(enrichSystem(sys, refs));
@@ -92,15 +133,15 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 /** Hindrar Systemförvaltare från att ändra system de inte förvaltar. */
 async function requireManagedSystem(req: Request, _res: Response, next: NextFunction): Promise<void> {
   try {
-    if (!isSystemManagerScoped(req.user!)) return next();
+    if (!isScoped(req.user!)) return next();
 
     const [sys, refs] = await Promise.all([
-      apiService.get<{ systemManagerId?: string }>(`systems/${req.params.id}`),
+      apiService.get<ScopedSystem>(`systems/${req.params.id}`),
       loadRefData(),
     ]);
 
-    if (!systemFilter(req, refs)(sys.systemManagerId)) {
-      return next(new HttpException(403, 'Du är inte utsedd förvaltare för systemet'));
+    if (!systemFilter(req, refs)(sys)) {
+      return next(new HttpException(403, scopeDeniedMessage(req.user!)));
     }
 
     next();
