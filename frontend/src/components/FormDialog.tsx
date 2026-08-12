@@ -12,6 +12,7 @@ interface FormDialogProps {
   saving?: boolean;
   error?: string;
   saveLabel?: string;
+  onBack?: () => void;
   maxWidth?: DialogWidth;
   children: React.ReactNode;
 }
@@ -24,6 +25,7 @@ export default function FormDialog({
   saving,
   error,
   saveLabel,
+  onBack,
   maxWidth = "md",
   children,
 }: FormDialogProps) {
@@ -46,6 +48,11 @@ export default function FormDialog({
         <Button variant="secondary" onClick={onClose}>
           {t.cancel}
         </Button>
+        {onBack && (
+          <Button variant="secondary" onClick={onBack}>
+            {t.back}
+          </Button>
+        )}
         <Button
           variant="primary"
           onClick={onSave}

@@ -6,6 +6,8 @@ const sv = {
   create: "Skapa",
   saving: "Sparar...",
   search: "Sök",
+  next: "Nästa",
+  back: "Tillbaka",
   actions: "Åtgärder",
   name: "Namn",
   title: "Titel",
@@ -134,7 +136,6 @@ const sv = {
       "Klassning av konfidentialitet, riktighet och tillgänglighet för varje system. Beroende av klassningen bedöms om systemet är verksamhetskritiskt och sedan samhällsviktigt.",
     businessCritical: "Verksamhetskritiskt",
     societalCritical: "Samhällsviktigt",
-    notAssessed: "Ej bedömt",
     businessCriticalRule:
       "Ett system räknas som verksamhetskritiskt när riktighet eller tillgänglighet är klassad till 3 eller högre.",
     mcfLinkLabel: "Läs om samhällsviktig verksamhet hos MCF",
@@ -145,8 +146,18 @@ const sv = {
     a11yClassify: (name: string) => `Gör klassning för ${name}`,
     businessCriticalHit:
       "Med den här klassningen är systemet verksamhetskritiskt. Verksamheten ska då även bedöma om systemet är samhällsviktigt.",
-    upcomingFields:
-      "Kommentar per aspekt och bedömningen av samhällsviktig verksamhet kommer i nästa version.",
+    level: "Nivå",
+    motivering: "Motivering",
+    motiveringPlaceholder: "Motivera vald nivå...",
+    motiveringRequired: (aspect: string) =>
+      `Motivering för ${aspect.toLowerCase()} är obligatorisk`,
+    societalQuestion: "Är systemet samhällsviktigt?",
+    societalMotivering: "Motivering till bedömningen",
+    societalMotiveringRequired: "Motivering till bedömningen är obligatorisk",
+    societalStepTitle: "Samhällsviktig verksamhet",
+    viewTitle: (systemId: string, name: string) =>
+      `Klassning: ${systemId} — ${name}`,
+    noClassification: "Systemet är inte klassat ännu",
   },
 
   // Suppliers

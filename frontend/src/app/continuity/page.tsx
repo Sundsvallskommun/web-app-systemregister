@@ -82,15 +82,13 @@ export default function ContinuityPage() {
                     {critical ? t.yes : t.no}
                   </Label>
                 </Table.Column>
-                {/* Samhällsviktigt är en manuell bedömning som systemförvaltaren
-                    gör för verksamhetskritiska system — den går inte att härleda
-                    ur K/R/T. Visas som "Ej bedömt" tills api-service lagrar
-                    svaret och motiveringen. */}
                 <Table.Column data-cy="societal-critical">
                   {critical ? (
-                    <Label color="warning">{t.krt.notAssessed}</Label>
+                    <Label color={sys.samhallsviktigt ? "error" : "tertiary"}>
+                      {sys.samhallsviktigt ? t.yes : t.no}
+                    </Label>
                   ) : (
-                    t.emptyValue
+                    <Label>{t.no}</Label>
                   )}
                 </Table.Column>
                 <Table.Column>
