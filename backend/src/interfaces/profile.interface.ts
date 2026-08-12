@@ -17,5 +17,8 @@ export interface Profile extends SamlProfile {
   'urn:oid:0.9.2342.19200300.100.1.1'?: string;
   groups?: string | string[];
   'http://schemas.xmlsoap.org/claims/Group'?: string | string[];
+  /** Organisationsträdet, `nivå|orgId|namn` per nivå separerade med ¤ */
+  orgTree?: string;
+  orgtree?: string;
   attributes?: { [key: string]: unknown };
 }

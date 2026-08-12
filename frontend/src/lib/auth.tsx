@@ -19,6 +19,7 @@ export interface AuthState {
   /** AD-grupper användaren är medlem i (normaliserade till lowercase) */
   groups: string[];
   role: Role;
+  orgId?: string;
 }
 
 interface AuthContextValue {

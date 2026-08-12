@@ -16,6 +16,11 @@ export interface User {
   groups: string[];
   /** Högsta behörighetsnivå användarens grupper ger */
   role: UserRole;
+  /**
+   * Användarens organisation ur orgTree — matchar organizations.id i registret.
+   * Saknas om IdP:n inte skickar med något orgTree.
+   */
+  orgId?: string;
 }
 
 type AppUser = User;

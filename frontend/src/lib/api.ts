@@ -42,6 +42,7 @@ export interface MeResponse {
     email: string;
     groups: string[];
     role: Role;
+    orgId?: string;
   };
 }
 

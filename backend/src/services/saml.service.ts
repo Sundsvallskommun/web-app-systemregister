@@ -6,6 +6,7 @@ import { User } from '@/interfaces/user.interface';
 import { getPrimaryRole } from '@/services/authorization.service';
 import { logger } from '@/utils/logger';
 import { normalizeGroup } from '@/utils/normalizeGroup';
+import { getOrgIdFromOrgTree } from '@/utils/orgTree';
 import { samlConfig } from '@/utils/samlOptions';
 
 /**
@@ -43,6 +44,7 @@ export function profileToUser(profile: Profile): User {
 
   const groups = getProfileGroups(profile);
   const role = getPrimaryRole(groups);
+  const orgId = getOrgIdFromOrgTree(profile.orgTree ?? profile.orgtree);
 
   if (!role) {
     logger.warn(`Inloggning nekad för ${username} — ingen behörighetsgrupp bland [${groups.join(', ')}]`);
@@ -57,6 +59,7 @@ export function profileToUser(profile: Profile): User {
     email: String(email ?? ''),
     groups,
     role,
+    orgId,
   };
 }
 
