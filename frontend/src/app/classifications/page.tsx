@@ -10,7 +10,6 @@ import { KrtChip } from "@/components/KrtDisplay";
 import { useAuth } from "@/lib/auth";
 import { get } from "@/lib/api";
 import type { System, PaginatedResponse } from "@/lib/api";
-import { KRT_LEVEL_COLOR } from "@/lib/enums";
 import { classLevel, isBusinessCritical } from "@/lib/krt";
 import t from "@/lib/i18n";
 
@@ -62,7 +61,7 @@ export default function ClassificationsPage() {
           </Table.HeaderColumn>
           <Table.HeaderColumn>{t.krt.assessment}</Table.HeaderColumn>
           <Table.HeaderColumn>{t.krt.businessCritical}</Table.HeaderColumn>
-          <Table.HeaderColumn>{t.systems.criticality}</Table.HeaderColumn>
+          <Table.HeaderColumn>{t.krt.societalCritical}</Table.HeaderColumn>
           <Table.HeaderColumn className="justify-end" sticky={true}>
             {t.actions}
           </Table.HeaderColumn>
@@ -108,18 +107,13 @@ export default function ClassificationsPage() {
                     {businessCritical ? t.yes : t.no}
                   </Label>
                 </Table.Column>
-                <Table.Column>
-                  {sys.CriticalityLevel ? (
-                    <Label
-                      color={
-                        KRT_LEVEL_COLOR[sys.CriticalityLevel.level] ??
-                        "tertiary"
-                      }
-                    >
-                      {sys.CriticalityLevel.name}
+                <Table.Column data-cy="societal-critical">
+                  {businessCritical ? (
+                    <Label color={sys.samhallsviktigt ? "error" : "tertiary"}>
+                      {sys.samhallsviktigt ? t.yes : t.no}
                     </Label>
                   ) : (
-                    t.emptyValue
+                    <Label>{t.no}</Label>
                   )}
                 </Table.Column>
                 <Table.Column className="justify-end" sticky={true}>

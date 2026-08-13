@@ -7,7 +7,6 @@ import { KrtChip } from "@/components/KrtDisplay";
 import { useAuth } from "@/lib/auth";
 import { get } from "@/lib/api";
 import type { System, PaginatedResponse } from "@/lib/api";
-import { KRT_LEVEL_COLOR } from "@/lib/enums";
 import { isBusinessCritical } from "@/lib/krt";
 import t from "@/lib/i18n";
 
@@ -47,7 +46,6 @@ export default function ContinuityPage() {
           <Table.HeaderColumn>
             {t.continuity.societalCritical}
           </Table.HeaderColumn>
-          <Table.HeaderColumn>{t.systems.criticality}</Table.HeaderColumn>
         </Table.Header>
         <Table.Body>
           {systems.map((sys) => {
@@ -91,26 +89,12 @@ export default function ContinuityPage() {
                     <Label>{t.no}</Label>
                   )}
                 </Table.Column>
-                <Table.Column>
-                  {sys.CriticalityLevel ? (
-                    <Label
-                      color={
-                        KRT_LEVEL_COLOR[sys.CriticalityLevel.level] ??
-                        "tertiary"
-                      }
-                    >
-                      {sys.CriticalityLevel.name}
-                    </Label>
-                  ) : (
-                    t.emptyValue
-                  )}
-                </Table.Column>
               </Table.Row>
             );
           })}
           {systems.length === 0 && (
             <Table.Row>
-              <Table.Column colSpan={8} className="justify-center py-32">
+              <Table.Column colSpan={7} className="justify-center py-32">
                 {t.systems.noSystems}
               </Table.Column>
             </Table.Row>

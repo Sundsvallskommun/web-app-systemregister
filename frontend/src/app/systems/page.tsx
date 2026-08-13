@@ -210,10 +210,6 @@ export default function SystemsPage() {
             <strong>{t.systems.supplier}:</strong>{" "}
             {selected?.Supplier?.name ?? t.emptyValue}
           </p>
-          <p className="text-small">
-            <strong>{t.systems.criticality}:</strong>{" "}
-            {selected?.CriticalityLevel?.name ?? t.emptyValue}
-          </p>
         </div>
         <p className="text-small mt-16">
           <strong>{t.description}:</strong>{" "}
