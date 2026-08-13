@@ -202,15 +202,12 @@ export default function ClassificationFormDialog({
             ser vad man valt tidigare utan att behöva backa. */}
         {step > 0 && (
           <div className="flex flex-col gap-8">
-            {ASPECTS.slice(0, step).map(({ level, motivering, label }) => (
+            {ASPECTS.slice(0, step).map(({ level, label }) => (
               <div key={level} className="flex flex-col gap-4">
                 <div className="flex items-center gap-8">
                   <span className="text-small font-bold">{label}</span>
                   <KrtChip value={form[level]} />
                 </div>
-                <p className="text-small text-dark-secondary">
-                  {form[motivering] || t.emptyValue}
-                </p>
               </div>
             ))}
           </div>
