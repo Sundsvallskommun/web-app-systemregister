@@ -79,7 +79,7 @@ export default function ClassificationFormDialog({
         onClose();
         return;
       }
-      await patch(`/systems/${system.id}`, body, auth.token);
+      await patch(`/systems/${system.id}`, body);
       onSaved();
     } catch (err) {
       setError(err instanceof Error ? err.message : t.saveFailed);
