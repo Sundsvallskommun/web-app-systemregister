@@ -158,7 +158,11 @@ export default function ClassificationFormDialog({
       for (const key of Object.keys(form) as (keyof ClassificationForm)[]) {
         if (form[key] !== original[key]) body[key] = form[key];
       }
-      
+      if (Object.keys(body).length === 0) {
+        onClose();
+        return;
+      }
+
       body.klassningsdatum = new Date().toLocaleDateString("sv-SE");
 
       await patch(`/systems/${system.id}`, body);
