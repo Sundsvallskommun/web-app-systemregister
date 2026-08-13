@@ -1,14 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, Link, RadioButton, Textarea } from "@sk-web-gui/react";
-import { KrtSelect } from "@/components/KrtDisplay";
+import {
+  Card,
+  Link,
+  ProgressStepper,
+  RadioButton,
+  Textarea,
+} from "@sk-web-gui/react";
+import { KrtChip, KrtSelect } from "@/components/KrtDisplay";
 import Field from "@/components/Field";
 import FormDialog from "@/components/FormDialog";
 import { patch } from "@/lib/api";
 import type { System } from "@/lib/api";
 import { isBusinessCritical } from "@/lib/krt";
 import t from "@/lib/i18n";
+import { useScreenWidth } from "@/lib/hooks/useScreenWidth";
 
 interface ClassificationForm {
   konfidentialitet: number;
@@ -45,6 +52,7 @@ function systemToForm(sys: System): ClassificationForm {
   };
 }
 
+/** Ett steg per aspekt, i den ordning K/R/T alltid presenteras. */
 const ASPECTS = [
   {
     level: "konfidentialitet",
@@ -75,9 +83,10 @@ export default function ClassificationFormDialog({
   onSaved,
 }: Props) {
   const [form, setForm] = useState<ClassificationForm>(EMPTY_FORM);
-  const [step, setStep] = useState<0 | 1>(0);
+  const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const screenWidth = useScreenWidth();
 
   useEffect(() => {
     if (system) {
@@ -97,26 +106,34 @@ export default function ClassificationFormDialog({
     form.tillganglighet,
   );
 
-  /** Nivåer och motiveringar — steg 1. */
-  const validateLevels = (): boolean => {
-    for (const aspect of ASPECTS) {
+  // Samhällsviktighetssteget tillkommer först när klassningen gör systemet
+  // verksamhetskritiskt, så antalet steg kan växa medan man fyller i.
+  const stepLabels = [
+    ...ASPECTS.map((a) => a.label),
+    ...(businessCritical ? [t.krt.societalStepTitle] : []),
+  ];
+  const isLastStep = step === stepLabels.length - 1;
+
+  /** Varje steg validerar bara sitt eget fält innan man går vidare. */
+  const validateStep = (index: number): boolean => {
+    const aspect = ASPECTS[index];
+    if (aspect) {
       if (!form[aspect.motivering].trim()) {
         setError(t.krt.motiveringRequired(aspect.label));
         return false;
       }
+    } else if (!form.samhallsviktigtMotivering.trim()) {
+      setError(t.krt.societalMotiveringRequired);
+      return false;
     }
     setError("");
     return true;
   };
 
-  /**
-   * Steg 1 leder vidare till samhällsviktighetsfrågan när klassningen gör
-   * systemet verksamhetskritiskt — annars ställs den frågan aldrig och
-   * formuläret sparas direkt.
-   */
   const handlePrimary = () => {
-    if (step === 0 && businessCritical) {
-      if (validateLevels()) setStep(1);
+    if (!validateStep(step)) return;
+    if (!isLastStep) {
+      setStep(step + 1);
       return;
     }
     void handleSave();
@@ -125,14 +142,12 @@ export default function ClassificationFormDialog({
   const handleSave = async () => {
     if (!system) return;
 
-    if (!validateLevels()) {
-      setStep(0);
-      return;
-    }
-    // Motiveringen krävs oavsett ja eller nej — men bara när frågan ställts.
-    if (businessCritical && !form.samhallsviktigtMotivering.trim()) {
-      setError(t.krt.societalMotiveringRequired);
-      return;
+    // Sista steget kan nås direkt vid redigering — validera hela klassningen.
+    for (let i = 0; i < stepLabels.length; i++) {
+      if (!validateStep(i)) {
+        setStep(i);
+        return;
+      }
     }
 
     setSaving(true);
@@ -156,6 +171,8 @@ export default function ClassificationFormDialog({
     }
   };
 
+  const currentAspect = ASPECTS[step];
+
   return (
     <FormDialog
       open={!!system}
@@ -164,90 +181,115 @@ export default function ClassificationFormDialog({
       onSave={handlePrimary}
       saving={saving}
       error={error}
-      saveLabel={step === 0 && businessCritical ? t.next : t.save}
-      onBack={step === 1 ? () => setStep(0) : undefined}
+      saveLabel={isLastStep ? t.save : t.next}
+      onBack={step > 0 ? () => setStep(step - 1) : undefined}
     >
-      {step === 0 ? (
-        <div className="flex flex-col gap-16">
-          {/* En fieldset per aspekt — nivån och dess motivering hör ihop, och
-              aspektnamnet i legend är rubriken över båda. */}
-          {ASPECTS.map(({ level, motivering, label }) => (
-            <Card key={level} color="tertiary">
-              <Card.Body className="flex flex-col gap-12 w-full">
-                <span className="text-large font-bold">{label}</span>
-                <Field label={t.krt.level} required>
-                  <KrtSelect
-                    value={form[level]}
-                    onChange={(v) => update(level, v)}
-                  />
-                </Field>
-                <Field label={t.krt.motivering} required>
-                  <Textarea
-                    rows={2}
-                    placeholder={t.krt.motiveringPlaceholder}
-                    value={form[motivering]}
-                    onChange={(e) => update(motivering, e.target.value)}
-                    className="min-h-100"
-                  />
-                </Field>
-              </Card.Body>
-            </Card>
-          ))}
-
-          {businessCritical && (
-            <p role="status" className="text-small">
-              {t.krt.businessCriticalHit}
-            </p>
-          )}
+      <div className="flex flex-col gap-24">
+        <div className="flex flex-col gap-8">
+          <ProgressStepper
+            steps={stepLabels}
+            current={step}
+            labelPosition="bottom"
+            size="sm"
+            vertical={screenWidth < 600}
+          />
+          <span className="text-small text-dark-secondary">
+            {t.krt.stepOf(step + 1, stepLabels.length)}
+          </span>
         </div>
-      ) : (
-        <div className="flex flex-col gap-16">
-          <p className="text-small">{t.krt.businessCriticalHit}</p>
-          <Link href={t.krt.mcfUrl} external size="sm">
-            {t.krt.mcfLinkLabel}
-          </Link>
 
+        {/* Redan besvarade steg ligger kvar som läsbar sammanfattning, så man
+            ser vad man valt tidigare utan att behöva backa. */}
+        {step > 0 && (
+          <div className="flex flex-col gap-8">
+            {ASPECTS.slice(0, step).map(({ level, motivering, label }) => (
+              <div key={level} className="flex flex-col gap-4">
+                <div className="flex items-center gap-8">
+                  <span className="text-small font-bold">{label}</span>
+                  <KrtChip value={form[level]} />
+                </div>
+                <p className="text-small text-dark-secondary">
+                  {form[motivering] || t.emptyValue}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {currentAspect ? (
           <Card color="tertiary">
-            <Card.Body className="flex flex-col gap-12 w-full">
+            <Card.Body className="flex w-full flex-col gap-12">
               <span className="text-large font-bold">
-                {t.krt.societalStepTitle}
+                {currentAspect.label}
               </span>
-              <Field label={t.krt.societalQuestion} required>
-                <RadioButton.Group
-                  inline
-                  name="samhallsviktigt"
-                  value={form.samhallsviktigt ? "ja" : "nej"}
-                >
-                  <RadioButton
-                    value="ja"
-                    onChange={() => update("samhallsviktigt", true)}
-                  >
-                    {t.yes}
-                  </RadioButton>
-                  <RadioButton
-                    value="nej"
-                    onChange={() => update("samhallsviktigt", false)}
-                  >
-                    {t.no}
-                  </RadioButton>
-                </RadioButton.Group>
+              <Field label={t.krt.level} required>
+                <KrtSelect
+                  value={form[currentAspect.level]}
+                  onChange={(v) => update(currentAspect.level, v)}
+                />
               </Field>
-              {/* Motiveringen krävs oavsett svar — även ett nej ska gå att följa upp. */}
-              <Field label={t.krt.societalMotivering} required>
+              <Field label={t.krt.motivering} required>
                 <Textarea
-                  rows={3}
+                  rows={2}
                   placeholder={t.krt.motiveringPlaceholder}
-                  value={form.samhallsviktigtMotivering}
+                  value={form[currentAspect.motivering]}
                   onChange={(e) =>
-                    update("samhallsviktigtMotivering", e.target.value)
+                    update(currentAspect.motivering, e.target.value)
                   }
                   className="min-h-100"
                 />
               </Field>
             </Card.Body>
           </Card>
-        </div>
-      )}
+        ) : (
+          <>
+            <p className="text-small">{t.krt.businessCriticalHit}</p>
+            <Link href={t.krt.mcfUrl} external size="sm">
+              {t.krt.mcfLinkLabel}
+            </Link>
+
+            <Card color="tertiary">
+              <Card.Body className="flex w-full flex-col gap-12">
+                <span className="text-large font-bold">
+                  {t.krt.societalStepTitle}
+                </span>
+                <Field label={t.krt.societalQuestion} required>
+                  <RadioButton.Group
+                    inline
+                    name="samhallsviktigt"
+                    value={form.samhallsviktigt ? "ja" : "nej"}
+                  >
+                    <RadioButton
+                      value="ja"
+                      onChange={() => update("samhallsviktigt", true)}
+                    >
+                      {t.yes}
+                    </RadioButton>
+                    <RadioButton
+                      value="nej"
+                      onChange={() => update("samhallsviktigt", false)}
+                    >
+                      {t.no}
+                    </RadioButton>
+                  </RadioButton.Group>
+                </Field>
+                {/* Motiveringen krävs oavsett svar — även ett nej ska gå att följa upp. */}
+                <Field label={t.krt.societalMotivering} required>
+                  <Textarea
+                    rows={3}
+                    placeholder={t.krt.motiveringPlaceholder}
+                    value={form.samhallsviktigtMotivering}
+                    onChange={(e) =>
+                      update("samhallsviktigtMotivering", e.target.value)
+                    }
+                    className="min-h-100"
+                  />
+                </Field>
+              </Card.Body>
+            </Card>
+          </>
+        )}
+      </div>
     </FormDialog>
   );
 }

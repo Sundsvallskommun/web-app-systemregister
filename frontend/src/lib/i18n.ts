@@ -119,7 +119,7 @@ const sv = {
 
   // KRT Classification
   krt: {
-    title: "Informationssäkerhetsklass (K/R/T)",
+    title: "Informationssäkerhetsklass",
     confidentiality: "Konfidentialitet",
     integrity: "Riktighet",
     availability: "Tillgänglighet",
@@ -154,7 +154,8 @@ const sv = {
     societalQuestion: "Är systemet samhällsviktigt?",
     societalMotivering: "Motivering till bedömningen",
     societalMotiveringRequired: "Motivering till bedömningen är obligatorisk",
-    societalStepTitle: "Samhällsviktig verksamhet",
+    societalStepTitle: "Samhällsviktig",
+    stepOf: (current: number, total: number) => `Steg ${current} av ${total}`,
     viewTitle: (systemId: string, name: string) =>
       `Klassning: ${systemId} — ${name}`,
     noClassification: "Systemet är inte klassat ännu",
@@ -291,7 +292,7 @@ const sv = {
     systemOverview: "Systemöversikt",
     systemOverviewDesc: (count: number) =>
       `Sammanställning av ${count} system med status, ägare och klassning.`,
-    krtReport: "Informationssäkerhetsklass (K/R/T)",
+    krtReport: "Informationssäkerhetsklass",
     krtReportDesc:
       "Alla systems konfidentialitet, riktighet och tillgänglighet.",
     supplierReport: "Leverantörsrapport",

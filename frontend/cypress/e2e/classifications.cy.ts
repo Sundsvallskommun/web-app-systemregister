@@ -3,7 +3,7 @@ describe("Classifications (K/R/T) page", () => {
     cy.visitAs("/classifications", "admin");
     cy.wait("@getSystems");
 
-    cy.contains("h1", "Informationssäkerhetsklass (K/R/T)").should(
+    cy.contains("h1", "Informationssäkerhetsklass").should(
       "be.visible",
     );
     cy.contains("SYS-001").should("be.visible");
