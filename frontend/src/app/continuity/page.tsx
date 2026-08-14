@@ -7,7 +7,6 @@ import { KrtChip } from "@/components/KrtDisplay";
 import { useAuth } from "@/lib/auth";
 import { get } from "@/lib/api";
 import type { System, PaginatedResponse } from "@/lib/api";
-import { KRT_LEVEL_COLOR } from "@/lib/enums";
 import { isBusinessCritical } from "@/lib/krt";
 import t from "@/lib/i18n";
 
@@ -47,7 +46,6 @@ export default function ContinuityPage() {
           <Table.HeaderColumn>
             {t.continuity.societalCritical}
           </Table.HeaderColumn>
-          <Table.HeaderColumn>{t.systems.criticality}</Table.HeaderColumn>
         </Table.Header>
         <Table.Body>
           {systems.map((sys) => {
@@ -82,29 +80,13 @@ export default function ContinuityPage() {
                     {critical ? t.yes : t.no}
                   </Label>
                 </Table.Column>
-                {/* Samhällsviktigt är en manuell bedömning som systemförvaltaren
-                    gör för verksamhetskritiska system — den går inte att härleda
-                    ur K/R/T. Visas som "Ej bedömt" tills api-service lagrar
-                    svaret och motiveringen. */}
                 <Table.Column data-cy="societal-critical">
                   {critical ? (
-                    <Label color="warning">{t.krt.notAssessed}</Label>
-                  ) : (
-                    t.emptyValue
-                  )}
-                </Table.Column>
-                <Table.Column>
-                  {sys.CriticalityLevel ? (
-                    <Label
-                      color={
-                        KRT_LEVEL_COLOR[sys.CriticalityLevel.level] ??
-                        "tertiary"
-                      }
-                    >
-                      {sys.CriticalityLevel.name}
+                    <Label color={sys.samhallsviktigt ? "error" : "tertiary"}>
+                      {sys.samhallsviktigt ? t.yes : t.no}
                     </Label>
                   ) : (
-                    t.emptyValue
+                    <Label>{t.no}</Label>
                   )}
                 </Table.Column>
               </Table.Row>
@@ -112,7 +94,7 @@ export default function ContinuityPage() {
           })}
           {systems.length === 0 && (
             <Table.Row>
-              <Table.Column colSpan={8} className="justify-center py-32">
+              <Table.Column colSpan={7} className="justify-center py-32">
                 {t.systems.noSystems}
               </Table.Column>
             </Table.Row>

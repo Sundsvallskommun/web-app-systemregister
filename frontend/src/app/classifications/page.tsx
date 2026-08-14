@@ -2,14 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button, Label, Link, Table } from "@sk-web-gui/react";
-import { Pencil } from "lucide-react";
+import { Eye, Pencil } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import ClassificationFormDialog from "@/components/ClassificationFormDialog";
+import ClassificationViewDialog from "@/components/ClassificationViewDialog";
 import { KrtChip } from "@/components/KrtDisplay";
 import { useAuth } from "@/lib/auth";
 import { get } from "@/lib/api";
 import type { System, PaginatedResponse } from "@/lib/api";
-import { KRT_LEVEL_COLOR } from "@/lib/enums";
 import { classLevel, isBusinessCritical } from "@/lib/krt";
 import t from "@/lib/i18n";
 
@@ -17,6 +17,7 @@ export default function ClassificationsPage() {
   const { auth } = useAuth();
   const [systems, setSystems] = useState<System[]>([]);
   const [editing, setEditing] = useState<System | null>(null);
+  const [viewing, setViewing] = useState<System | null>(null);
 
   const loadSystems = useCallback(() => {
     if (!auth) return;
@@ -60,12 +61,10 @@ export default function ClassificationsPage() {
           </Table.HeaderColumn>
           <Table.HeaderColumn>{t.krt.assessment}</Table.HeaderColumn>
           <Table.HeaderColumn>{t.krt.businessCritical}</Table.HeaderColumn>
-          <Table.HeaderColumn>{t.systems.criticality}</Table.HeaderColumn>
-          {canEdit && (
-            <Table.HeaderColumn className="justify-end" sticky={true}>
-              {t.actions}
-            </Table.HeaderColumn>
-          )}
+          <Table.HeaderColumn>{t.krt.societalCritical}</Table.HeaderColumn>
+          <Table.HeaderColumn className="justify-end" sticky={true}>
+            {t.actions}
+          </Table.HeaderColumn>
         </Table.Header>
         <Table.Body>
           {systems.map((sys) => {
@@ -108,48 +107,56 @@ export default function ClassificationsPage() {
                     {businessCritical ? t.yes : t.no}
                   </Label>
                 </Table.Column>
-                <Table.Column>
-                  {sys.CriticalityLevel ? (
-                    <Label
-                      color={
-                        KRT_LEVEL_COLOR[sys.CriticalityLevel.level] ??
-                        "tertiary"
-                      }
-                    >
-                      {sys.CriticalityLevel.name}
+                <Table.Column data-cy="societal-critical">
+                  {businessCritical ? (
+                    <Label color={sys.samhallsviktigt ? "error" : "tertiary"}>
+                      {sys.samhallsviktigt ? t.yes : t.no}
                     </Label>
                   ) : (
-                    t.emptyValue
+                    <Label>{t.no}</Label>
                   )}
                 </Table.Column>
-                {canEdit && (
-                  <Table.Column className="justify-end" sticky={true}>
+                <Table.Column className="justify-end" sticky={true}>
+                  <div className="inline-flex gap-4">
                     <Button
                       iconButton
                       variant="tertiary"
                       size="sm"
-                      aria-label={t.krt.a11yClassify(sys.name)}
-                      onClick={() => setEditing(sys)}
+                      aria-label={t.a11y.view(sys.name)}
+                      onClick={() => setViewing(sys)}
                     >
-                      <Pencil />
+                      <Eye />
                     </Button>
-                  </Table.Column>
-                )}
+                    {canEdit && (
+                      <Button
+                        iconButton
+                        variant="tertiary"
+                        size="sm"
+                        aria-label={t.krt.a11yClassify(sys.name)}
+                        onClick={() => setEditing(sys)}
+                      >
+                        <Pencil />
+                      </Button>
+                    )}
+                  </div>
+                </Table.Column>
               </Table.Row>
             );
           })}
           {systems.length === 0 && (
             <Table.Row>
-              <Table.Column
-                colSpan={canEdit ? 10 : 9}
-                className="justify-center py-32"
-              >
+              <Table.Column colSpan={10} className="justify-center py-32">
                 {t.systems.noSystems}
               </Table.Column>
             </Table.Row>
           )}
         </Table.Body>
       </Table>
+
+      <ClassificationViewDialog
+        system={viewing}
+        onClose={() => setViewing(null)}
+      />
 
       <ClassificationFormDialog
         system={editing}

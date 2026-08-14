@@ -142,8 +142,14 @@ export interface System {
   documentationUrl?: string;
   hostingType?: string;
   konfidentialitet: number;
+  konfidentialitetMotivering?: string;
   riktighet: number;
+  riktighetMotivering?: string;
   tillganglighet: number;
+  tillganglighetMotivering?: string;
+  samhallsviktigt?: boolean;
+  samhallsviktigtMotivering?: string;
+  klassningsdatum?: string;
   ownerOrg?: { id: string; name: string };
   systemOwner?: { id: string; firstName: string; lastName: string; email: string };
   technicalContact?: { id: string; firstName: string; lastName: string; email: string };
