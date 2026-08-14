@@ -118,6 +118,10 @@ export default function ClassificationFormDialog({
   const validateStep = (index: number): boolean => {
     const aspect = ASPECTS[index];
     if (aspect) {
+      if (!form[aspect.level]) {
+        setError(t.krt.levelRequired(aspect.label));
+        return false;
+      }
       if (!form[aspect.motivering].trim()) {
         setError(t.krt.motiveringRequired(aspect.label));
         return false;

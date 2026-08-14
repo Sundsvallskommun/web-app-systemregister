@@ -149,6 +149,8 @@ const sv = {
     level: "Nivå",
     motivering: "Motivering",
     motiveringPlaceholder: "Motivera vald nivå...",
+    levelRequired: (aspect: string) =>
+      `Välj en nivå för ${aspect.toLowerCase()}`,
     motiveringRequired: (aspect: string) =>
       `Motivering för ${aspect.toLowerCase()} är obligatorisk`,
     societalQuestion: "Är systemet samhällsviktigt?",
