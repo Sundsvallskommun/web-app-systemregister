@@ -20,8 +20,8 @@ const router = Router();
 router.use(authMiddleware);
 
 /**
- * Bygger ett filter för den inloggade användaren. Systemförvaltaren begränsas
- * till de system den är utsedd förvaltare för, övriga roller passerar allt.
+ * Avgör om ett enskilt system är synligt för användaren. Systemförvaltaren når
+ * bara de system den är utsedd förvaltare för, övriga roller passerar allt.
  *
  * Kopplingen mellan AD-konto och person-post går via username. Saknas den blir
  * urvalet tomt — hellre det än att visa hela registret. Uppslaget görs en gång
@@ -40,32 +40,62 @@ function systemFilter(req: Request, refs: RefData): (systemManagerId?: unknown) 
   return systemManagerId => systemManagerId === person.id;
 }
 
+/**
+ * Frågeparametrar för listningen. Systemförvaltaren får sitt urval pålagt som
+ * systemManagerId, så att api-service filtrerar före pagineringen och _meta
+ * räknar på de system användaren förvaltar i stället för på hela registret.
+ *
+ * Klientens eget systemManagerId skrivs över — det är inget den får välja.
+ * null betyder att användaren saknar person-post och därmed inte ser något.
+ */
+function systemQuery(req: Request, refs: RefData): Record<string, unknown> | null {
+  const query = req.query as Record<string, unknown>;
+
+  if (!isSystemManagerScoped(req.user!)) return query;
+
+  const person = findPersonByUsername(refs, req.user!.username);
+
+  if (!person) {
+    logger.warn(`${req.user!.username} saknar person-post — ser inga system`);
+    return null;
+  }
+
+  return { ...query, systemManagerId: person.id };
+}
+
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Referensdatan berikar svaret, och för Systemförvaltaren behövs den redan
+    // innan anropet — person-posten avgör vilket urval som skickas uppströms.
+    const refsPromise = loadRefData();
+    const query = systemQuery(req, await refsPromise);
+
+    if (!query) {
+      res.json({ data: [], total: 0, page: 1, pages: 0, _meta: {}, systems: [] });
+      return;
+    }
+
     const [raw, refs] = await Promise.all([
-      apiService.get<{ _meta?: Record<string, unknown>; systems?: unknown[] }>(
-        'systems',
-        req.query as Record<string, unknown>,
-      ),
-      loadRefData(),
+      apiService.get<{ _meta?: Record<string, unknown>; systems?: unknown[] }>('systems', query),
+      refsPromise,
     ]);
+
     const meta = raw?._meta ?? {};
     const systemsArr = Array.isArray(raw?.systems) ? raw.systems : [];
     const enriched = systemsArr.map(s => enrichSystem(s as Parameters<typeof enrichSystem>[0], refs));
 
-    // api-service kan inte filtrera på förvaltare, så urvalet görs här — efter
-    // pagineringen. Därför speglar _meta hela registret; total räknas om nedan.
-    const scoped = isSystemManagerScoped(req.user!);
-    const canSee = systemFilter(req, refs);
-    const visible = scoped ? enriched.filter(s => canSee(s.systemManagerId)) : enriched;
-
+    // Systemen kommer i api-serviceens ordning, som i praktiken är namnsorterad:
+    // varken createdAt eller någon sort-parameter finns i api-service i dag, och
+    // id:na är slumpade UUID:er (v4) som inte heller bär skapandeordning.
+    // Dashboardens "Senaste system" tar de fem första och visar därför inte de
+    // nyast skapade systemen. Sortera på createdAt här när fältet finns.
     res.json({
-      data: visible,
-      total: scoped ? visible.length : (meta.totalRecords ?? meta.count),
+      data: enriched,
+      total: meta.totalRecords ?? meta.count,
       page: meta.page,
-      pages: scoped ? undefined : meta.totalPages,
+      pages: meta.totalPages,
       _meta: meta,
-      systems: visible,
+      systems: enriched,
     });
   } catch (err) {
     next(err);

@@ -203,6 +203,12 @@ export default function SystemsPage() {
               : t.emptyValue}
           </p>
           <p className="text-small">
+            <strong>{t.systems.systemManager}:</strong>{" "}
+            {selected?.systemManager
+              ? `${selected.systemManager.firstName} ${selected.systemManager.lastName}`
+              : t.emptyValue}
+          </p>
+          <p className="text-small">
             <strong>{t.systems.technicalContact}:</strong>{" "}
             {selected?.technicalContact
               ? `${selected.technicalContact.firstName} ${selected.technicalContact.lastName}`
