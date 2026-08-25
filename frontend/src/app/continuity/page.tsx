@@ -8,15 +8,8 @@ import { useAuth } from "@/lib/auth";
 import { get } from "@/lib/api";
 import type { System, PaginatedResponse } from "@/lib/api";
 import { KRT_LEVEL_COLOR } from "@/lib/enums";
+import { isBusinessCritical } from "@/lib/krt";
 import t from "@/lib/i18n";
-
-function isCritical(k: number, r: number, tv: number): boolean {
-  return Math.max(k, r, tv) >= 4;
-}
-
-function isSocietal(k: number, tv: number): boolean {
-  return k >= 4 && tv >= 4;
-}
 
 export default function ContinuityPage() {
   const { auth } = useAuth();
@@ -58,13 +51,8 @@ export default function ContinuityPage() {
         </Table.Header>
         <Table.Body>
           {systems.map((sys) => {
-            const critical = isCritical(
-              sys.konfidentialitet,
+            const critical = isBusinessCritical(
               sys.riktighet,
-              sys.tillganglighet,
-            );
-            const societal = isSocietal(
-              sys.konfidentialitet,
               sys.tillganglighet,
             );
             return (
@@ -89,15 +77,21 @@ export default function ContinuityPage() {
                 <Table.Column className="justify-center">
                   <KrtChip value={sys.tillganglighet} />
                 </Table.Column>
-                <Table.Column>
+                <Table.Column data-cy="business-critical">
                   <Label color={critical ? "error" : "tertiary"}>
                     {critical ? t.yes : t.no}
                   </Label>
                 </Table.Column>
-                <Table.Column>
-                  <Label color={societal ? "error" : "tertiary"}>
-                    {societal ? t.yes : t.no}
-                  </Label>
+                {/* Samhällsviktigt är en manuell bedömning som systemförvaltaren
+                    gör för verksamhetskritiska system — den går inte att härleda
+                    ur K/R/T. Visas som "Ej bedömt" tills api-service lagrar
+                    svaret och motiveringen. */}
+                <Table.Column data-cy="societal-critical">
+                  {critical ? (
+                    <Label color="warning">{t.krt.notAssessed}</Label>
+                  ) : (
+                    t.emptyValue
+                  )}
                 </Table.Column>
                 <Table.Column>
                   {sys.CriticalityLevel ? (

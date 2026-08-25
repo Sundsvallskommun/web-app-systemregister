@@ -125,13 +125,28 @@ const sv = {
     abbr: "K/R/T",
     assessment: "Bedömning",
     levels: {
-      critical: "Verksamhetskritiskt",
+      veryHigh: "Mycket högt",
       high: "Högt",
       medium: "Medium",
       low: "Lågt",
     },
     infoText:
       "Klassning av konfidentialitet, riktighet och tillgänglighet för varje system. Beroende av klassningen bedöms om systemet är verksamhetskritiskt och sedan samhällsviktigt.",
+    businessCritical: "Verksamhetskritiskt",
+    societalCritical: "Samhällsviktigt",
+    notAssessed: "Ej bedömt",
+    businessCriticalRule:
+      "Ett system räknas som verksamhetskritiskt när riktighet eller tillgänglighet är klassad till 3 eller högre.",
+    mcfLinkLabel: "Läs om samhällsviktig verksamhet hos MCF",
+    mcfUrl: "https://www.mcf.se/samhallsviktigverksamhet/",
+    classify: "Gör klassning",
+    classifyTitle: (systemId: string, name: string) =>
+      `Klassning: ${systemId} — ${name}`,
+    a11yClassify: (name: string) => `Gör klassning för ${name}`,
+    businessCriticalHit:
+      "Med den här klassningen är systemet verksamhetskritiskt. Verksamheten ska då även bedöma om systemet är samhällsviktigt.",
+    upcomingFields:
+      "Kommentar per aspekt och bedömningen av samhällsviktig verksamhet kommer i nästa version.",
   },
 
   // Suppliers
@@ -250,7 +265,7 @@ const sv = {
   continuity: {
     title: "Kontinuitet & Återställning",
     infoText:
-      "Översikt av verksamhetskritiska och samhällsviktiga system baserat på K/R/T-klassning. System med nivå 4 på någon dimension bedöms som verksamhetskritiska.",
+      "Översikt av verksamhetskritiska och samhällsviktiga system baserat på K/R/T-klassning. System med riktighet eller tillgänglighet på nivå 3 eller högre bedöms som verksamhetskritiska.",
     businessCritical: "Verksamhetskritiskt",
     societalCritical: "Samhällsviktigt",
   },
