@@ -44,6 +44,13 @@ const corsWhitelist = (ORIGIN ?? "")
   .filter(Boolean);
 
 /**
+ * Routprefix, normaliserat till exakt en inledande och ingen avslutande slash.
+ * Både monteringen av routrarna och CORS-undantaget för /saml utgår från det
+ * här värdet, så de inte kan glida isär om env-variabeln skrivs annorlunda.
+ */
+const routePrefix = `/${(BASE_URL_PREFIX || "/api").trim().replace(/^\/+|\/+$/g, "")}`;
+
+/**
  * Resources som proxas mot api-service-systemregister.
  * Mappar mot de Java-controllers som finns under
  * api-service-systemregister/src/main/java/se/sundsvall/systemregister/api/.
@@ -130,7 +137,7 @@ export class App {
       logger.info("=================================");
       logger.info(`======= ENV: ${this.env} =======`);
       logger.info(`🚀 ${APP_NAME ?? "BFF"} listening on port ${this.port}`);
-      logger.info(`Prefix: ${BASE_URL_PREFIX ?? "/api"}`);
+      logger.info(`Prefix: ${routePrefix}`);
       logger.info("=================================");
     });
   }
@@ -151,7 +158,16 @@ export class App {
     this.app.use(cookieParser());
     this.app.use(limiter);
 
-    this.app.use(
+    // SAML-routerna nås genom webbläsarnavigering och formulärposter från IdP:n,
+    // inte via XHR. Origin-headern är då antingen IdP:ns eller "null" (efter en
+    // redirect) och ska inte matchas mot frontend-allowlistan.
+    const samlPath = `${routePrefix}/saml`;
+
+    this.app.use((req, res, next) => {
+      if (req.path.startsWith(samlPath)) {
+        return next();
+      }
+
       cors({
         credentials: CREDENTIALS,
         origin: (origin, callback) => {
@@ -165,10 +181,13 @@ export class App {
           if (this.env === "development") {
             return callback(null, true);
           }
-          callback(new Error("Not allowed by CORS"));
+          // Utan CORS-headers blockerar webbläsaren svaret — men anropet ska
+          // inte bli ett 500 från error-middlewaren.
+          logger.warn(`Blockerade CORS-anrop från origin: ${origin}`);
+          callback(null, false);
         },
-      }),
-    );
+      })(req, res, next);
+    });
 
     // Bakom reverse proxy i drift — behövs för secure cookies och korrekt IP.
     this.app.set("trust proxy", 1);
@@ -199,7 +218,6 @@ export class App {
   }
 
   private initializeRoutes(): void {
-    const prefix = BASE_URL_PREFIX || "/api";
     const root = Router();
 
     root.use("/health", healthController);
@@ -233,7 +251,7 @@ export class App {
       }),
     );
 
-    this.app.use(prefix, root);
+    this.app.use(routePrefix, root);
   }
 
   private initializeErrorHandling(): void {
