@@ -1,5 +1,7 @@
 import { ADMIN_GROUP, EDITOR_GROUP, VIEWER_GROUP } from '@config';
 import { User, UserRole } from '@/interfaces/user.interface';
+import { findPersonByUsername, RefData } from '@/services/enrich.service';
+import { logger } from '@/utils/logger';
 import { parseConfiguredGroups } from '@/utils/normalizeGroup';
 
 /**
@@ -76,4 +78,94 @@ export function isOrganizationScoped(user: Pick<User, 'role'>): boolean {
 /** true om användarens roll begränsar vilka system den får se. */
 export function isScoped(user: Pick<User, 'role'>): boolean {
   return isSystemManagerScoped(user) || isOrganizationScoped(user);
+}
+
+/** De fält på ett system som avgör om användaren når det. */
+export interface ScopedSystem {
+  systemManagerId?: unknown;
+  ownerOrganizationId?: unknown;
+}
+
+export type Scope =
+  | { kind: 'all' }
+  | { kind: 'none' }
+  | { kind: 'manager'; personId: string }
+  | { kind: 'org'; orgId: string };
+
+/**
+ * Löser upp användarens begränsning en gång per request. Kopplingen mellan
+ * AD-konto och person-post går via username, och mellan AD-konto och
+ * organisation via orgTree. Saknas någon av dem blir urvalet tomt — hellre det
+ * än att visa hela registret.
+ *
+ * Både listningen och kontrollen av enskilda system utgår härifrån, så de kan
+ * inte hamna i otakt om reglerna ändras.
+ */
+export function resolveScope(user: User, refs: RefData): Scope {
+  if (isSystemManagerScoped(user)) {
+    const person = findPersonByUsername(refs, user.username);
+
+    if (!person) {
+      logger.warn(`${user.username} saknar person-post — ser inga system`);
+      return { kind: 'none' };
+    }
+
+    return { kind: 'manager', personId: person.id };
+  }
+
+  if (isOrganizationScoped(user)) {
+    if (!user.orgId) {
+      logger.warn(`${user.username} saknar orgTree/orgId — ser inga system`);
+      return { kind: 'none' };
+    }
+
+    if (!refs.organizations.has(user.orgId)) {
+      logger.warn(`${user.username} har orgId ${user.orgId} som saknas i registret — ser inga system`);
+      return { kind: 'none' };
+    }
+
+    return { kind: 'org', orgId: user.orgId };
+  }
+
+  return { kind: 'all' };
+}
+
+/**
+ * Urvalet uttryckt som frågeparametrar, så att api-service filtrerar före
+ * pagineringen och _meta räknar på användarens egna system i stället för på hela
+ * registret. Klientens egna värden på parametrarna skrivs över — det är inget
+ * den får välja. null betyder att användaren inte ser något.
+ */
+export function scopeToQuery(scope: Scope, query: Record<string, unknown>): Record<string, unknown> | null {
+  switch (scope.kind) {
+    case 'all':
+      return query;
+    case 'manager':
+      return { ...query, systemManagerId: scope.personId };
+    case 'org':
+      return { ...query, ownerOrganizationId: scope.orgId };
+    case 'none':
+      return null;
+  }
+}
+
+/** Samma urval, men för ett system som hämtats på id och inte via listningen. */
+export function isInScope(scope: Scope, sys: ScopedSystem): boolean {
+  switch (scope.kind) {
+    case 'all':
+      return true;
+    case 'manager':
+      return sys.systemManagerId === scope.personId;
+    case 'org':
+      return sys.ownerOrganizationId === scope.orgId;
+    case 'none':
+      return false;
+  }
+}
+
+/** 403-text anpassad efter vad som begränsar användaren. */
+export function scopeDeniedMessage(user: Pick<User, 'role'>): string {
+  return isOrganizationScoped(user)
+    ? 'Systemet ägs av en annan organisation'
+    : 'Du är inte utsedd förvaltare för systemet';
 }
