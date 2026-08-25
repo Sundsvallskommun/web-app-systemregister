@@ -4,11 +4,9 @@ import { authMiddleware, requireRole } from '@/middlewares/auth.middleware';
 import { apiService } from '@/services/api.service';
 import {
   isInScope,
-  isScoped,
   resolveScope,
   scopeDeniedMessage,
   scopeToQuery,
-  Scope,
   ScopedSystem,
 } from '@/services/authorization.service';
 import { loadRefData, enrichSystem } from '@/services/enrich.service';
@@ -32,9 +30,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     // redan innan anropet — person-posten respektive organisationen avgör vilket
     // urval som skickas uppströms.
     const refsPromise = loadRefData();
-    const scope: Scope = isScoped(req.user!)
-      ? resolveScope(req.user!, await refsPromise)
-      : { kind: 'all' };
+    const scope = await resolveScope(req.user!, () => refsPromise);
     const query = scopeToQuery(scope, req.query as Record<string, unknown>);
 
     if (!query) {
@@ -83,18 +79,19 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const [sys, refs] = await Promise.all([
+    const refsPromise = loadRefData();
+    const [sys, scope] = await Promise.all([
       apiService.get<Parameters<typeof enrichSystem>[0]>(
         `systems/${req.params.id}`,
       ),
-      loadRefData(),
+      resolveScope(req.user!, () => refsPromise),
     ]);
 
-    if (!isInScope(resolveScope(req.user!, refs), sys)) {
+    if (!isInScope(scope, sys)) {
       throw new HttpException(403, scopeDeniedMessage(req.user!));
     }
 
-    res.json(enrichSystem(sys, refs));
+    res.json(enrichSystem(sys, await refsPromise));
   } catch (err) {
     next(err);
   }
@@ -113,16 +110,16 @@ async function requireManagedSystem(
   next: NextFunction,
 ): Promise<void> {
   try {
-    if (!isScoped(req.user!)) return next();
+    const scope = await resolveScope(req.user!, loadRefData);
 
-    const [sys, refs] = await Promise.all([
-      apiService.get<ScopedSystem & Record<string, unknown>>(
-        `systems/${req.params.id}`,
-      ),
-      loadRefData(),
-    ]);
+    // Admin når allt — då behöver systemet inte hämtas för kontrollens skull.
+    if (scope.kind === 'all') return next();
 
-    if (!isInScope(resolveScope(req.user!, refs), sys)) {
+    const sys = await apiService.get<ScopedSystem & Record<string, unknown>>(
+      `systems/${req.params.id}`,
+    );
+
+    if (!isInScope(scope, sys)) {
       return next(new HttpException(403, scopeDeniedMessage(req.user!)));
     }
 

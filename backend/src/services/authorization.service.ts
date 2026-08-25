@@ -75,11 +75,6 @@ export function isOrganizationScoped(user: Pick<User, 'role'>): boolean {
   return user.role === 'viewer';
 }
 
-/** true om användarens roll begränsar vilka system den får se. */
-export function isScoped(user: Pick<User, 'role'>): boolean {
-  return isSystemManagerScoped(user) || isOrganizationScoped(user);
-}
-
 /** De fält på ett system som avgör om användaren når det. */
 export interface ScopedSystem {
   systemManagerId?: unknown;
@@ -98,12 +93,17 @@ export type Scope =
  * organisation via orgTree. Saknas någon av dem blir urvalet tomt — hellre det
  * än att visa hela registret.
  *
- * Både listningen och kontrollen av enskilda system utgår härifrån, så de kan
- * inte hamna i otakt om reglerna ändras.
+ * Det här är enda stället som avgör vilka roller som begränsas. Både listningen
+ * och kontrollen av enskilda system utgår härifrån, så de kan inte hamna i otakt
+ * om reglerna ändras — och en ny roll kan inte råka hamna utanför urvalet.
+ *
+ * Referensdatan skickas in som en funktion eftersom bara de begränsade rollerna
+ * behöver den; Admin svarar 'all' utan att hämta något. getRefs anropas högst en
+ * gång per anrop, så anroparen kan skicka in loadRefData direkt.
  */
-export function resolveScope(user: User, refs: RefData): Scope {
+export async function resolveScope(user: User, getRefs: () => Promise<RefData>): Promise<Scope> {
   if (isSystemManagerScoped(user)) {
-    const person = findPersonByUsername(refs, user.username);
+    const person = findPersonByUsername(await getRefs(), user.username);
 
     if (!person) {
       logger.warn(`${user.username} saknar person-post — ser inga system`);
@@ -119,6 +119,8 @@ export function resolveScope(user: User, refs: RefData): Scope {
       return { kind: 'none' };
     }
 
+    const refs = await getRefs();
+
     if (!refs.organizations.has(user.orgId)) {
       logger.warn(`${user.username} har orgId ${user.orgId} som saknas i registret — ser inga system`);
       return { kind: 'none' };
@@ -127,7 +129,14 @@ export function resolveScope(user: User, refs: RefData): Scope {
     return { kind: 'org', orgId: user.orgId };
   }
 
-  return { kind: 'all' };
+  if (user.role === 'admin') {
+    return { kind: 'all' };
+  }
+
+  // Rollen känns inte igen — t.ex. en session skriven av en äldre version av
+  // appen. Hellre inga system än hela registret; 'all' ska bara nås av Admin.
+  logger.warn(`${user.username} har okänd roll ${user.role} — ser inga system`);
+  return { kind: 'none' };
 }
 
 /**
