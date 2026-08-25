@@ -40,7 +40,7 @@ export default function ClassificationFormDialog({
   system,
   onClose,
   onSaved,
-}: Props) {
+}: Readonly<Props>) {
   const { auth } = useAuth();
   const [form, setForm] = useState<ClassificationForm>({
     konfidentialitet: 0,
@@ -116,15 +116,12 @@ export default function ClassificationFormDialog({
           Byggd av tokens i stället för <Alert>, som är till för avfärdbara
           meddelanden — det här är permanent information om klassningen. */}
       {businessCritical && (
-        <div
-          role="status"
-          className="mt-24 flex flex-col gap-8"
-        >
+        <output className="mt-24 flex flex-col gap-8">
           <span className="text-small">{t.krt.businessCriticalHit}</span>
           <Link href={t.krt.mcfUrl} external size="sm">
             {t.krt.mcfLinkLabel}
           </Link>
-        </div>
+        </output>
       )}
 
       <p className="text-small text-dark-secondary mt-16">
