@@ -64,9 +64,10 @@ export function isSystemManagerScoped(user: Pick<User, 'role'>): boolean {
 }
 
 /**
- * IT-samordnaren (viewer) ser bara system som ägs av den egna organisationen
- * eller någon enhet under den — user.orgId kommer ur orgTree och matchar
- * systems.owner_organization_id.
+ * IT-samordnaren (viewer) ser bara system som ägs av den egna organisationen —
+ * user.orgId kommer ur orgTree och matchar systems.owner_organization_id exakt.
+ * Underliggande enheter räknas inte in; orgTree antas peka ut den nivå som äger
+ * systemen.
  */
 export function isOrganizationScoped(user: Pick<User, 'role'>): boolean {
   return user.role === 'viewer';

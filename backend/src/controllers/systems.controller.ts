@@ -3,13 +3,7 @@ import { HttpException } from '@/exceptions/HttpException';
 import { authMiddleware, requireRole } from '@/middlewares/auth.middleware';
 import { apiService } from '@/services/api.service';
 import { isOrganizationScoped, isScoped, isSystemManagerScoped } from '@/services/authorization.service';
-import {
-  loadRefData,
-  enrichSystem,
-  findPersonByUsername,
-  collectOrgBranch,
-  RefData,
-} from '@/services/enrich.service';
+import { loadRefData, enrichSystem, findPersonByUsername, RefData } from '@/services/enrich.service';
 import { User, UserRole } from '@/interfaces/user.interface';
 import { uppercaseEnumFields } from '@/utils/enumTransform';
 import { logger } from '@/utils/logger';
@@ -31,10 +25,9 @@ interface ScopedSystem {
 }
 
 /**
- * Bygger ett filter för den inloggade användaren. Systemförvaltaren begränsas
- * till de system den är utsedd förvaltare för, IT-samordnaren till system som
- * ägs av den egna organisationen (inklusive underliggande enheter). Admin
- * passerar allt.
+ * Avgör om ett enskilt system är synligt för användaren. Systemförvaltaren når
+ * bara de system den är utsedd förvaltare för, IT-samordnaren de system som ägs
+ * av den egna organisationen. Admin passerar allt.
  *
  * Kopplingen mellan AD-konto och person-post går via username, och mellan
  * AD-konto och organisation via orgTree. Saknas någon av dem blir urvalet tomt
@@ -65,9 +58,7 @@ function systemFilter(req: Request, refs: RefData): (sys: ScopedSystem) => boole
       return () => false;
     }
 
-    const branch = collectOrgBranch(refs, user.orgId);
-
-    return sys => typeof sys.ownerOrganizationId === 'string' && branch.has(sys.ownerOrganizationId);
+    return sys => sys.ownerOrganizationId === user.orgId;
   }
 
   return () => true;
@@ -80,33 +71,82 @@ function scopeDeniedMessage(user: Pick<User, 'role'>): string {
     : 'Du är inte utsedd förvaltare för systemet';
 }
 
+/**
+ * Frågeparametrar för listningen. Systemförvaltaren får sitt urval pålagt som
+ * systemManagerId och IT-samordnaren som ownerOrganizationId, så att api-service
+ * filtrerar före pagineringen och _meta räknar på användarens egna system i
+ * stället för på hela registret.
+ *
+ * Klientens egna värden på de parametrarna skrivs över — det är inget den får
+ * välja. null betyder att användaren saknar den koppling urvalet bygger på och
+ * därmed inte ser något.
+ */
+function systemQuery(req: Request, refs: RefData): Record<string, unknown> | null {
+  const query = req.query as Record<string, unknown>;
+  const user = req.user!;
+
+  if (isSystemManagerScoped(user)) {
+    const person = findPersonByUsername(refs, user.username);
+
+    if (!person) {
+      logger.warn(`${user.username} saknar person-post — ser inga system`);
+      return null;
+    }
+
+    return { ...query, systemManagerId: person.id };
+  }
+
+  if (isOrganizationScoped(user)) {
+    if (!user.orgId) {
+      logger.warn(`${user.username} saknar orgTree/orgId — ser inga system`);
+      return null;
+    }
+
+    if (!refs.organizations.has(user.orgId)) {
+      logger.warn(`${user.username} har orgId ${user.orgId} som saknas i registret — ser inga system`);
+      return null;
+    }
+
+    return { ...query, ownerOrganizationId: user.orgId };
+  }
+
+  return query;
+}
+
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Referensdatan berikar svaret, och för de begränsade rollerna behövs den
+    // redan innan anropet — person-posten respektive organisationen avgör vilket
+    // urval som skickas uppströms.
+    const refsPromise = loadRefData();
+    const query = systemQuery(req, await refsPromise);
+
+    if (!query) {
+      res.json({ data: [], total: 0, page: 1, pages: 0, _meta: {}, systems: [] });
+      return;
+    }
+
     const [raw, refs] = await Promise.all([
-      apiService.get<{ _meta?: Record<string, unknown>; systems?: unknown[] }>(
-        'systems',
-        req.query as Record<string, unknown>,
-      ),
-      loadRefData(),
+      apiService.get<{ _meta?: Record<string, unknown>; systems?: unknown[] }>('systems', query),
+      refsPromise,
     ]);
+
     const meta = raw?._meta ?? {};
     const systemsArr = Array.isArray(raw?.systems) ? raw.systems : [];
     const enriched = systemsArr.map(s => enrichSystem(s as Parameters<typeof enrichSystem>[0], refs));
 
-    // api-service kan inte filtrera på förvaltare eller organisation, så urvalet
-    // görs här — efter pagineringen. Därför speglar _meta hela registret;
-    // total räknas om nedan. Uppdateras när filtrering finns i api-service.
-    const scoped = isScoped(req.user!);
-    const canSee = systemFilter(req, refs);
-    const visible = scoped ? enriched.filter(s => canSee(s)) : enriched;
-
+    // Systemen kommer i api-serviceens ordning, som i praktiken är namnsorterad:
+    // varken createdAt eller någon sort-parameter finns i api-service i dag, och
+    // id:na är slumpade UUID:er (v4) som inte heller bär skapandeordning.
+    // Dashboardens "Senaste system" tar de fem första och visar därför inte de
+    // nyast skapade systemen. Sortera på createdAt här när fältet finns.
     res.json({
-      data: visible,
-      total: scoped ? visible.length : (meta.totalRecords ?? meta.count),
+      data: enriched,
+      total: meta.totalRecords ?? meta.count,
       page: meta.page,
-      pages: scoped ? undefined : meta.totalPages,
+      pages: meta.totalPages,
       _meta: meta,
-      systems: visible,
+      systems: enriched,
     });
   } catch (err) {
     next(err);
