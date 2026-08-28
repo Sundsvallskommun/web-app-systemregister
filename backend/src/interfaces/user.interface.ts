@@ -1,3 +1,8 @@
+/**
+ *   admin  — Admin. Får som enda roll registrera nya system.
+ *   editor — Systemförvaltare. Redigerar de system den förvaltar.
+ *   viewer — IT-samordnare. Läsbehörighet inom sin förvaltning.
+ */
 export type UserRole = 'admin' | 'editor' | 'viewer';
 
 export interface User {

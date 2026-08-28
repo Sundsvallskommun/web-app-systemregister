@@ -7,6 +7,7 @@ import AppShell from "@/components/AppShell";
 import ViewDialog from "@/components/ViewDialog";
 import EnumLabel from "@/components/EnumLabel";
 import { useAuth } from "@/lib/auth";
+import { hasEditRights } from "@/lib/permissions";
 import { get } from "@/lib/api";
 import type { AiApplication } from "@/lib/api";
 import { AI_STATUS, AI_RISK_CATEGORY, metaFor } from "@/lib/enums";
@@ -40,7 +41,7 @@ export default function AiPage() {
       .catch(() => {});
   }, [auth]);
 
-  const canEdit = auth?.role === "admin" || auth?.role === "editor";
+  const canEdit = hasEditRights(auth);
 
   return (
     <AppShell>

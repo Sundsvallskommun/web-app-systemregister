@@ -46,7 +46,7 @@ describe("Systems page", () => {
     cy.get(".sk-modal-wrapper").should("not.exist");
   });
 
-  it("opens the create dialog for editors and admins", () => {
+  it("opens the create dialog for admins", () => {
     cy.visitAs("/systems", "admin");
     cy.wait("@getSystems");
 
@@ -58,6 +58,14 @@ describe("Systems page", () => {
     });
     cy.get(".sk-modal-wrapper").contains("button", "Avbryt").click();
     cy.get(".sk-modal-wrapper").should("not.exist");
+  });
+
+  it("lets editors edit systems but not register new ones", () => {
+    cy.visitAs("/systems", "editor");
+    cy.wait("@getSystems");
+
+    cy.contains("button", "Nytt system").should("not.exist");
+    cy.get('button[aria-label="Redigera Raindance"]').should("be.visible");
   });
 
   it("hides editing controls for viewers", () => {

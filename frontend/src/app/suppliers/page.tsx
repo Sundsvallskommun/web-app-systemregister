@@ -7,6 +7,7 @@ import AppShell from "@/components/AppShell";
 import ViewDialog from "@/components/ViewDialog";
 import SupplierFormDialog from "@/components/SupplierFormDialog";
 import { useAuth } from "@/lib/auth";
+import { hasEditRights } from "@/lib/permissions";
 import { get } from "@/lib/api";
 import type { Supplier } from "@/lib/api";
 import t from "@/lib/i18n";
@@ -35,7 +36,7 @@ export default function SuppliersPage() {
   const filtered = suppliers.filter((s) =>
     s.name.toLowerCase().includes(search.toLowerCase()),
   );
-  const canEdit = auth?.role === "admin" || auth?.role === "editor";
+  const canEdit = hasEditRights(auth);
 
   return (
     <AppShell>

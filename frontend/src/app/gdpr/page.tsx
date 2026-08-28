@@ -7,6 +7,7 @@ import AppShell from "@/components/AppShell";
 import ViewDialog from "@/components/ViewDialog";
 import EnumLabel from "@/components/EnumLabel";
 import { useAuth } from "@/lib/auth";
+import { hasEditRights } from "@/lib/permissions";
 import { get } from "@/lib/api";
 import type { PPB } from "@/lib/api";
 import { GDPR_STATUS, metaFor } from "@/lib/enums";
@@ -32,7 +33,7 @@ export default function GdprPage() {
       .catch(() => {});
   }, [auth]);
 
-  const canEdit = auth?.role === "admin" || auth?.role === "editor";
+  const canEdit = hasEditRights(auth);
 
   return (
     <AppShell>
