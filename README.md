@@ -48,7 +48,7 @@ The actual data API (`api-service-systemregister`, Java/Spring Boot + MariaDB) l
 ```sh
 # 1. Env files (one-time)
 cp .env.example .env
-cp backend/.env.example.local backend/.env.development.local
+cp backend/.env.example backend/.env.development.local
 cp frontend/.env-example frontend/.env.local
 
 # 2. Dependencies (one-time)
