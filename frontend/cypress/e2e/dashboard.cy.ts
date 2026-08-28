@@ -25,6 +25,6 @@ describe("Dashboard page", () => {
 
   it("shows access description for the current role", () => {
     cy.visitAs("/dashboard", "viewer");
-    cy.contains("Du har läsbehörighet för alla register.").should("be.visible");
+    cy.contains("Du har läsbehörighet för systemen i din förvaltning.").should("be.visible");
   });
 });
